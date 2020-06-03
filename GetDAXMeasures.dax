@@ -1,0 +1,30 @@
+﻿
+//https://exceleratorbi.com.au/getting-started-dax-studio/
+
+
+//select * from $SYSTEM.MDSCHEMA_MEASURES
+
+-----------------------------------------------
+select 
+   MEASUREGROUP_NAME, 
+   MEASURE_NAME, 
+   EXPRESSION
+
+from $SYSTEM.MDSCHEMA_MEASURES
+
+where MEASURE_AGGREGATOR = 0
+
+order by MEASUREGROUP_NAME
+
+-----------------------------------------------
+
+select 
+   MEASUREGROUP_NAME, 
+   MEASURE_NAME, 
+   EXPRESSION
+
+from $SYSTEM.MDSCHEMA_MEASURES
+
+where MEASURE_AGGREGATOR = 0
+
+order by MEASUREGROUP_NAME

@@ -1,0 +1,65 @@
+﻿//Something much more interesting is to extract a new table that you build using a DAX Query – 
+//a table that doesn’t actually exist in your data model but can be fabricated via a query and then materialised into a spreadsheet or CSV.  
+//There are a number of regular DAX functions that return Tables including FILTER, VALUES, CALCULATETABLE, DATEADD to name a few.
+
+EVALUATE
+	ExpenseClassification
+	
+//--------------------------------------
+EVALUATE
+	VALUES(ExpenseClassification[ExpenseCategory])
+	
+//--------------------------------------
+EVALUATE
+	FILTER(Expenses, MeasuresCollection[Amount]>=1000)
+//--------------------------------------
+
+
+//In addition to these regular DAX functions, there are some functions specifically designed to be used in DAX Queries, such as SUMMARIZE and ADDCOLUMNS.  
+//For those of you that know some SQL, SUMMARIZE is similar to GROUP BY (note it is similar, but not the same).
+//In the example below, I am summarising the Calendar table and extracting a table that contains all the Year/Month combinations.
+
+EVALUATE
+	SUMMARIZE(
+			Calendar,
+			Calendar[CalendarYearDesc],
+			Calendar[EnglishMonthName]
+			)
+//ORDER BY 			
+//		Calendar[CalendarYearDesc],
+//		Calendar[EnglishMonthName]
+
+//---------------------------------------
+
+//Now using the ADDCOLUMNS DAX function, it is possible to create a summary table leveraging the measures in your data model too.  
+//Below is a table showing the summary sales by month (I added a ROUND function too).
+
+EVALUATE
+	ADDCOLUMNS(
+	SUMMARIZE(
+			Calendar,
+			Calendar[CalendarYearDesc],
+			Calendar[EnglishMonthName]
+			),
+		"Total Sales", ROUND([Amount],2)
+		)
+//ORDER BY 			
+//		Calendar[CalendarYearDesc],
+//		Calendar[EnglishMonthName]
+	
+
+//As I mentioned earlier, the result of a DAX Query MUST be a table – no exceptions.  
+//So what if you want to return a measure?  Well it is quite simple – you use the ROW function to return a single row table as shown below.
+//The ROW function takes 2 parameters, the name of the column and the expression to be evaluated.  
+//It then returns a single row table  with one or more columns (1 column in my case) and then returns the result.
+
+EVALUATE
+	ROW("Amount", [Amount])
+	
+//When you click the Server Timings button in DAX Studio (shown as 1 below), you will see a new tab (2) that among other things shows you 
+//the total time spent in evaluating your query.  
+//It is important that you clear the cache (4 below) before you test a query (unless you are trying to test what impact the cache has on your query).	
+	
+//In short, the storage engine is the fast, multi-threaded, cacheable engine.  The formula engine is very powerful, but is single threaded and not cacheable.  
+//Where ever possible, you want your DAX formulas to use the storage engine in preference over the formula engine. 
+

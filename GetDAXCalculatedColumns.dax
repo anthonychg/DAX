@@ -1,0 +1,30 @@
+﻿//https://community.powerbi.com/t5/Desktop/List-ALL-Calculated-COLUMNS-in-a-Data-Model/td-p/152291
+SELECT  * FROM $SYSTEM.TMSCHEMA_COLUMNS WHERE [Type]=2
+
+SELECT  TableID, ExplicitName, [Type], SourceColumn, Expression, DisplayFolder 
+FROM $SYSTEM.TMSCHEMA_COLUMNS 
+WHERE [Type]=2
+order by TableID, ExplicitName
+
+
+select 
+   TableID,
+   ExplicitName, 
+   Expression
+
+from $SYSTEM.TMSCHEMA_COLUMNS
+
+where [Type] = 2
+
+order by TableID
+
+//-------------------------------------------------------------------------
+//https://blog.crossjoin.co.uk/2011/09/17/documenting-dependencies-between-dax-calculations/
+//https://msdn.microsoft.com/en-us/library/gg471590(v=sql.110).aspx
+select * from $SYSTEM.DISCOVER_CALC_DEPENDENCY
+
+//--------------------------------------------------------------------------
+
+SELECT * From $SYSTEM.DISCOVER_CALC_DEPENDENCY 
+ WHERE OBJECT_TYPE = 'MEASURE' OR OBJECT_TYPE = 'CALC_COLUMN'
+ ORDER BY [EXPRESSION] ASC
