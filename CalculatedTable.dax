@@ -1,0 +1,847 @@
+﻿//Table Constructor
+//ROW(), ADDCOLUMN(), SELECTCOLUMNS(), GENERATE()
+----------------------------------------
+-- Generate 1 row
+EVALUATE
+	{ 1 }
+EVALUATE
+	{ (1) }
+
+
+-- Generate 2 rows
+EVALUATE
+	{
+		{1}, {2}	
+	}
+
+-- Generate 3 rows
+EVALUATE
+	{ 1,2,3 }
+
+-- Generate 4 columns and 2 rows
+EVALUATE
+	{
+		(1,2,3, DATE(2021,1,1)),
+		(4,5,6, DATE(2021,1,1))	
+	}
+
+-- Generate 4 columns and 2 rows
+EVALUATE
+VAR Table1 = 
+	{
+		(1,2,3, DATE(2021,1,1)),
+		(4,5,6, DATE(2021,1,1))	
+	}
+RETURN Table1
+
+----------------------------------------
+EVALUATE
+VAR Table1 = 
+	{
+		("A"),
+		("B")	
+	}
+VAR Table1Name =
+	SELECTCOLUMNS(
+					Table1,
+					"ColumnName1", [Value]
+				) -- rename the column using SELECTCOLUMNS
+VAR Table2 = 
+	{
+		("C"),
+		("D")
+	}
+VAR Table2Name =
+	SELECTCOLUMNS(
+					Table2,
+					"ColumnName2", [Value]
+				)
+RETURN 	
+	GENERATE(Table1Name, Table2Name) -- Crossjoin?
+
+
+
+----------------------------------------
+EVALUATE
+VAR Table1 = 
+	{
+		("A","B"),
+		("C","D")	
+	}
+VAR Table1Name =
+	SELECTCOLUMNS(
+					Table1,
+					"ColumnName1", [Value1],
+					"ColumnName2", [Value2]
+				)
+VAR Table2 = 
+	{
+		("E","F"),
+		("G","H")	
+	}
+VAR Table2Name =
+	SELECTCOLUMNS(
+					Table2,
+					"ColumnName3", [Value1],
+					"ColumnName4", [Value2]
+				)
+				
+//RETURN 	Table2Name
+RETURN
+	GENERATE(Table1Name, Table2Name) -- crossjoin
+
+
+-----------------------------------------
+-- Rename column Value to ColumnName1
+EVALUATE
+VAR Table1 = 
+	{
+		("A"),
+		("B")	
+	}
+VAR Table1Name =
+	SELECTCOLUMNS(
+					Table1,
+					"ColumnName1", [Value]
+				)
+RETURN
+	Table1Name
+
+-------------------------------------------
+-- Generate 2 rows
+EVALUATE
+{
+("Spain", 100), ("Sweden", )
+}
+
+
+-------------------------------------------
+EVALUATE
+VAR Table1 = 
+	{
+		(1,2,3, DATE(2021,1,1)),
+		(4,5,6, DATE(2021,1,1))	
+	}
+VAR Table2 =
+	SELECTCOLUMNS(
+					Table1,
+					"ColumnName1", [Value1],
+					"ColumnName2", [Value2],
+					"ColumnName3", [Value3],
+					"ColumnName4", [Value4]
+				)
+RETURN 	Table2
+
+------------------------------------------
+-- Rename the column [Date] to MyDate
+EVALUATE
+	SELECTCOLUMNS(
+					CALENDARAUTO(),
+					"MyDate", [Date]
+					)
+
+
+//GENERATE function is the equivalent of crossjoin
+EVALUATE
+	LkpAccount
+	
+EVALUATE
+	LkpExpense
+
+EVALUATE
+VAR BaseTable = GENERATE(LkpAccount, LkpExpense) --> CrossJoin
+RETURN BaseTable
+--
+
+//Row function always return 1 row
+EVALUATE
+VAR	Table1 = ROW(
+					"Column1", "A",
+					"Column2", "B"
+				)
+VAR	Table2 = ROW(
+
+					"Column3", "C",
+					"Column4", "D"
+				)
+//RETURN Table2
+RETURN 	
+	GENERATE(Table1, Table2)
+
+
+
+//---------------------------------------------------------------------------------------------------------------
+//DATATABLE
+//M code can't compute dynamic such as maximum value by scanning some tables
+//---------------------------------------------------------------------------------------------------------------
+
+-- Use Row function
+EVALUATE	
+	ROW("Price range", "LOW", "Min Price", 0, "Max Price", 100)
+
+
+EVALUATE	
+	UNION 
+	(
+	ROW("Price range", "LOW", "Min Price", 0, "Max Price", 100),
+	ROW("Price range", "MEDIUM", "Min Price", 100, "Max Price", 1000)
+	)
+
+EVALUATE	
+	UNION
+		(
+		ROW("Price range", "LOW", "Min Price", 0, "Max Price", 100),
+		ROW("Price range", "MEDIUM", "Min Price", 100, "Max Price", 1000),
+		ROW("Price range", "HIGH", "Min Price", 1000, "Max Price", 99999)
+		)
+	
+-- The content of your DataTable cannot be computed
+-- static value ok but can not write expressions
+-- useful because it provides the entire code in Power BI window without having to revert to Power Query
+EVALUATE
+DATATABLE(
+		"Country", STRING,
+		"Number", INTEGER,
+		{{"Spain", 100}, {"Sweden", 200}}
+		)
+		
+
+EVALUATE
+	DATATABLE(
+			"Price Range", STRING,
+			"Min Price", CURRENCY,
+			"Max Price", CURRENCY,
+			{
+				{"LOW", 0, 100},
+				{"MEDIUM", 100, 1000},
+				{"HIGH", 1000, 99999}
+			}
+		)
+	
+-- Another way using anonymous table constructor
+-- This below creates 3 different rows
+EVALUATE
+	{
+		"LOW", 0 , 100	
+	}
+
+-- This creates 1 row
+EVALUATE
+	{
+		("LOW", 0 , 100)
+	}
+	
+-- This creates 3 row
+EVALUATE
+	{
+		("LOW", 0 , 100),
+		("Medium", 100 , 1000),
+		("High", 1000 , 9999)
+	}
+	
+EVALUATE
+	SELECTCOLUMNS (
+			{
+				("LOW", 0 , 100),
+				("Medium", 100 , 1000),
+				("High", 1000 , 9999)
+			},
+			"Price Range", [Value1],
+			"Min Price", [Value2],
+			"Max Price", [Value3]
+			)
+//CONCLUSION
+// Anonymous constructors curly brackets can't specify column names nor the data type
+// DataTable does both but limitation can't use expressions, must use constant values inside DATATABLE
+// Row works fine can specify column names but cannot specify data types and only 1 row at a time.
+
+
+--------------------------------------------------------
+-- SUMMARIZECOLUMNS
+-------------------------------------------------------- 
+
+-- this not work, must use aggregation function
+EVALUATE
+	SUMMARIZECOLUMNS(Expenses[ExpenseCategory], "Amt", [AmountCAD])
+
+-- this works
+EVALUATE
+	SUMMARIZECOLUMNS(Expenses[ExpenseCategory], "Amt", SUM(Expenses[AmountCAD]), "MinExpenseDate", MIN(Expenses[ExpenseDate]))
+
+-- with filter
+EVALUATE 
+	SUMMARIZECOLUMNS(Expenses[ExpenseCategory], FILTER(Expenses, Expenses[ExpenseCategory]<>BLANK()) , "Amt", SUM(Expenses[AmountCAD]), "MinExpenseDate", MIN(Expenses[ExpenseDate]))
+	
+-- with filter
+EVALUATE 
+	SUMMARIZECOLUMNS(Expenses[ExpenseCategory], FILTER(Expenses, ISBLANK(Expenses[ExpenseCategory])) , "Amt", SUM(Expenses[AmountCAD]), "MinExpenseDate", MIN(Expenses[ExpenseDate]))
+	
+--
+EVALUATE 
+	SUMMARIZECOLUMNS(Expenses[ExpenseCategory], FILTER(Expenses, Expenses[ExpenseCategory]="Food Groceries") , "Amt", SUM(Expenses[AmountCAD]), "MinExpenseDate", MIN(Expenses[ExpenseDate]))
+
+
+EVALUATE
+CALCULATETABLE(
+				SUMMARIZE(
+						Expenses, 
+						Expenses[ExpenseCategory], 
+						Expenses[ExpenseCode]
+						),
+				Expenses[ExpenseCategory]<>BLANK()
+			)
+
+---------------------------------------------------------------------------
+-- DEFINE TABLE
+---------------------------------------------------------------------------
+EVALUATE
+SUMMARIZE(Expenses, Expenses[ExpenseCategory])
+
+EVALUATE
+SUMMARIZE(Expenses, Expenses[ExpenseCode])
+
+
+EVALUATE
+SUMMARIZE(Expenses, Expenses[ExpenseCategory], Expenses[ExpenseCode])
+
+EVALUATE
+CALCULATETABLE(
+				SUMMARIZE(
+						Expenses, 
+						Expenses[ExpenseCategory], 
+						Expenses[ExpenseCode]
+						),
+				Expenses[ExpenseCategory]<>BLANK()
+			)
+
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZE (
+        Sales,
+        'Product'[Brand],
+        'Date'[Calendar Year]
+    ),
+    'Product'[Color] = "Silver Grey"
+)
+
+
+
+-- This works
+DEFINE TABLE FoodGroceries = 
+	SUMMARIZECOLUMNS(
+					Expenses[ExpenseCategory], 
+					FILTER(Expenses, Expenses[ExpenseCategory]="Food Groceries") , 
+					"Amt", SUM(Expenses[AmountCAD]), 
+					"MinExpenseDate", MIN(Expenses[ExpenseDate])
+					)
+EVALUATE
+	SUMMARIZECOLUMNS(
+			FoodGroceries[ExpenseCategory],
+			"Total Amt",
+			SUM(FoodGroceries[Amt])
+			)
+
+-- This does NOT work (DEFINED TABLE can't be referenced by another table)
+DEFINE TABLE FoodGroceries = 
+	SUMMARIZECOLUMNS(
+					Expenses[ExpenseCategory], 
+					FILTER(Expenses, Expenses[ExpenseCategory]="Food Groceries") , 
+					"Amt", SUM(Expenses[AmountCAD]), 
+					"MinExpenseDate", MIN(Expenses[ExpenseDate])
+					)
+TABLE FoodGroceries2 = 
+	SUMMARIZECOLUMNS(
+			FoodGroceries[ExpenseCategory],
+			"Total Amt",
+			SUM(FoodGroceries[Amt])
+			)
+EVALUATE
+	FoodGroceries2
+
+
+-- This does NOT work for defined column(DEFINED TABLE can't be referenced)
+DEFINE TABLE FoodGroceries = 
+	SUMMARIZECOLUMNS(
+					Expenses[ExpenseCategory], 
+					FILTER(Expenses, Expenses[ExpenseCategory]="Food Groceries") , 
+					"Amt", SUM(Expenses[AmountCAD]), 
+					"MinExpenseDate", MIN(Expenses[ExpenseDate])
+					)
+COLUMN FoodGroceries[Amt2] = FoodGroceries[Amt]
+	
+EVALUATE
+	FoodGroceries
+	
+
+-- different between table and variable definition
+DEFINE 
+	TABLE T1 = VALUES(Expenses[ExpenseCode])
+	VAR V1 = VALUES(Expenses[Expensecode])
+EVALUATE
+	ADDCOLUMNS(T1, "Amt", [Amount1]) --> ADDCOLUMNS within filter context
+EVALUATE
+	ADDCOLUMNS(V1, "Amt", Expenses[AmountCAD])
+	
+	
+	
+---------------------------------------------------------------------------
+-- DEFINE COLUMN
+---------------------------------------------------------------------------
+DEFINE
+	COLUMN Expenses[Spending Category] = 
+			IF (
+				Expenses[AmountCAD]>= 1000,
+				"High",
+				"Low"
+				)
+
+EVALUATE
+	SUMMARIZECOLUMNS(
+		Expenses[Spending Category],
+		"Amt",
+			SUM(Expenses[AmountCAD])
+		)
+	
+
+--------------------------------------------------------------------------
+-- CALENDAR
+-- ADDCOLUMNS
+--------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------
+EVALUATE
+ADDCOLUMNS (
+	CALENDARAUTO(),
+	"Year", YEAR ([Date]),
+	"Month", FORMAT([Date], "mmmm"),
+	"Month Number", MONTH([Date]),
+	"Quarter", FORMAT( [Date], "\QQ")
+)
+
+EVALUATE
+ADDCOLUMNS (
+	CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+	"Year", YEAR ([Date]),
+	"Month", FORMAT([Date], "mmmm"),
+	"Month Number", MONTH([Date]),
+	"Quarter", FORMAT( [Date], "\QQ")
+)
+
+
+// Date Table
+EVALUATE
+VAR Days = CALENDAR(DATE(2016,1,1), DATE(2018,12,31))
+RETURN ADDCOLUMNS (
+Days,
+"Year", YEAR([Date]),
+"Month Number", MONTH([Date]),
+"Month", FORMAT([Date], "mmmm"),
+"Year Month Number", YEAR([Date]) * 12 + MONTH([Date]) - 1,
+"Year Month", FORMAT([Date],"mmm yy")
+)
+
+-----------------------------------------------------------------------
+
+// Wrong syntax
+EVALUATE
+RETURN ADDCOLUMNS (
+	CALENDARAUTO()
+	"Year", YEAR ([Date]),
+	"Month", FORMAT([Date], "mmmm"),
+	"Month Number", MONTH([Date]),
+	"Quarter", FORMAT( [Date], "\QQ")
+)
+
+-----------------------------------------------------------------------
+
+EVALUATE
+VAR Days = CALENDARAUTO()
+RETURN ADDCOLUMNS (
+	Days,
+	"Year", YEAR ([Date]),
+	"Month", FORMAT([Date], "mmmm"),
+	"Month Number", MONTH([Date]),
+	"Quarter", FORMAT( [Date], "\QQ")
+)
+
+---------------------------------------------------------------------
+---------------------------------------------------------------------
+
+
+EVALUATE
+VAR Table1 = 
+	{
+		(1,2,3, DATE(2021,1,1)),
+		(4,5,6, DATE(2021,1,1))	
+	}
+VAR Table2 =
+	SELECTCOLUMNS(
+					Table1,
+					"ColumnName1", [Value1],
+					"ColumnName2", [Value2],
+					"ColumnName3", [Value3],
+					"ColumnName4", [Value4]
+				)
+RETURN 	Table2
+
+---------------------------
+EVALUATE
+SELECTCOLUMNS(
+				CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+				"MyDate", [Date]
+			)
+
+EVALUATE
+	ADDCOLUMNS(
+			SELECTCOLUMNS(
+					CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+					"MyDate", [Date]
+					),
+					"Year", YEAR([MyDate]),
+					"Month Number", MONTH([MyDate]),
+					"Month", FORMAT([MyDate], "mmmm"),
+					"Year Month", FORMAT([MyDate],"mmm yy")
+		)
+
+
+----------------------------------------------------------------------
+// to add the name of the table for [Date]
+EVALUATE
+ADDCOLUMNS(
+	ADDCOLUMNS(
+			SELECTCOLUMNS(
+					CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+					"MyDate", [Date]
+					),
+					"Year", YEAR([MyDate]),
+					"Month Number", MONTH([MyDate]),
+		"Month", FORMAT([MyDate], "mmmm"),
+		"Year Month", FORMAT([MyDate],"mmm yy")
+		),
+	"Year Month Number", [Year] * 12 + [Month Number] - 1
+)
+
+----------------------------------------------------------------------
+// to add the name of the table for [Date]
+EVALUATE
+ADDCOLUMNS(
+	ADDCOLUMNS(
+			SELECTCOLUMNS(
+					CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+					"Calendar[Date]", [Date]
+					),
+					"Year", YEAR(Calendar[Date]),
+					"Month Number", MONTH(Calendar[Date]),
+		"Month", FORMAT(Calendar[Date], "mmmm"),
+		"Year Month", FORMAT(Calendar[Date],"mmm yy")
+		),
+	"Year Month Number", [Year] * 12 + [Month Number] - 1
+)
+
+
+--------------------------------------------------------------------
+//4 use variables, the code is more verbose, longer.
+EVALUATE
+VAR	BaseCalendar =
+		CALENDAR(DATE(2016,1,1), DATE(2018,12,31))
+VAR	RenamedCalendar = 
+		SELECTCOLUMNS (BaseCalendar, "Calendar[Date]", [Date])
+RETURN RenamedCalendar
+
+
+EVALUATE
+VAR	BaseCalendar =
+		CALENDAR(DATE(2016,1,1), DATE(2018,12,31))
+VAR	RenamedCalendar = 
+		SELECTCOLUMNS (BaseCalendar, "Calendar[Date]", [Date])
+VAR	Calendar_1 = 
+		SELECTCOLUMNS (
+			RenamedCalendar,
+			"Date", 'Calendar'[Date],
+			"Year", YEAR(Calendar[Date]),
+			"Month Number", MONTH(Calendar[Date]),
+			"Month", FORMAT(Calendar[Date], "mmmm"),
+			"Year Month", FORMAT(Calendar[Date], "mmm yy")
+		)
+VAR	Calendar_2 =
+		ADDCOLUMNS (Calendar_1, "Year Month Number", [Year] * 12 + [Month Number] -1)
+RETURN	
+	Calendar_2
+
+
+---------------------------------------------------------------------
+// 5 This one will not work because ROW() expect a single row/value.
+EVALUATE
+VAR BaseCalendar = 
+	CALENDARAUTO()
+	//CALENDAR( DATE(2016,1,1), DATE(2018,12,31) )
+	//RETURN BaseCalendar
+	//RETURN ROW("Day", "A")
+VAR	RenamedCalendar = 
+		SELECTCOLUMNS (BaseCalendar, "MyDate", [Date])
+RETURN RenamedCalendar
+RETURN 
+	ROW("Day", RenamedCalendar)
+
+
+
+// 5 This one will work after ensuring only return 1 row
+EVALUATE
+VAR BaseCalendar = 
+	//CALENDARAUTO()
+	CALENDAR( DATE(2021,1,1), DATE(2021,1,1))
+	//RETURN BaseCalendar
+	//RETURN ROW("Day", "A")
+	//VAR	RenamedCalendar = 
+	//SELECTCOLUMNS (BaseCalendar, "MyDate", [Date])
+	//RETURN RenamedCalendar
+RETURN ROW("Day", BaseCalendar)
+
+
+-----------------------------------------------------------------------------
+EVALUATE
+	{DAY(TODAY())}
+
+EVALUATE
+	{
+		DATE(YEAR(TODAY()), MONTH(TODAY()), DAY(TODAY()))
+	}
+EVALUATE
+	{
+		DATEDIFF((DATE(YEAR(TODAY()),1,1)), TODAY(),DAY)
+	}
+	
+
+EVALUATE
+	{
+		DATEDIFF ( DATE ( YEAR ( 'Table'[Date] ), 1, 1 ), 'Table'[Date], DAY ) + 1		
+	}
+
+-- DATEDIFF(<Date1>, <Date2>, <Interval>)
+
+-----------------------------------------------------------------------------
+EVALUATE
+VAR BaseCalendar = 
+	CALENDARAUTO()
+VAR	RenamedCalendar = 
+	SELECTCOLUMNS (BaseCalendar, "MyDate", [Date])
+//RETURN
+//	YEAR(MyDate)
+	
+RETURN
+	DATEDIFF(DATE(YEAR (BaseCalendar),1,1), BaseCalendar, DAY ) + 1	
+	
+
+
+
+//5 GENERATE Calendar function
+EVALUATE
+VAR BaseCalendar = 
+	CALENDARAUTO()
+	//CALENDAR( DATE(2016,1,1), DATE(2018,12,31) )
+RETURN
+	GENERATE(
+		BaseCalendar,
+		VAR	BaseDate = [Date]
+		VAR	intYearDate = YEAR(BaseDate)
+		VAR strCalendarYearDesc = "CY " & CONVERT(intYearDate, STRING)
+		VAR dtDateFormat = FORMAT(BaseDate, "mm/dd/yyyy")
+		VAR dtCalendarYearMonthFirst = EOMONTH(BaseDate, -1) + 1
+		VAR strCalendarYearMonth = FORMAT(BaseDate, "yyyy-mm")
+		VAR dtCalendarYearMonthName = FORMAT(BaseDate, "yyyy-mmm")
+		VAR dtCalendarMonthNameYear = FORMAT(BaseDate, "mmmm yyyy")
+		VAR dtCalendarYearMonthDayName = FORMAT(BaseDate, "yyyy-mmm-d")
+		VAR dtDateYearMonth = FORMAT(BaseDate, "yyyy-mm-dd")
+		VAR intDayNumberOfWeek = WEEKDAY(BaseDate)
+		VAR strEnglishDayNameOfWeek = FORMAT(BaseDate, "dddd")		
+		VAR intDayNumberOfMonth = DAY(BaseDate)
+		VAR intMonthNumberOfYear = MONTH(BaseDate)
+		VAR intDayNumberOfYear = DATEDIFF(DATE(intYearDate, 1, 1), BaseDate, DAY) + 1
+		VAR intWeekNumberOfYear = WEEKNUM(BaseDate)
+		VAR strMonthName = FORMAT(BaseDate, "mmmm")
+		VAR intCalendarQuarter = QUARTER(BaseDate)
+		VAR intCalendarSemester = SWITCH(intCalendarQuarter, 1, 1, 2,1, 3, 2, 4, 2, 0)
+		VAR strCalendarSemesterDesc = strCalendarYearDesc & " H" & CONVERT(intCalendarSemester, STRING)
+		VAR strCalendarQuarterDesc = strCalendarYearDesc & " Q" & CONVERT(intCalendarQuarter, STRING)
+		VAR strCalendarWeekDesc = "Week " & CONVERT(intWeekNumberOfYear, STRING) & " " & strCalendarYearDesc
+		
+		VAR dtTodayDate = TODAY()
+		VAR dtThisWeekendDate = TODAY() + (7 - WEEKDAY(TODAY(),1))
+		VAR dtLast4WDate = (TODAY() + (7 - WEEKDAY(TODAY(),1)))-30
+		VAR dtThisMonthEndDate = EOMONTH(TODAY(),0)
+		VAR dtLast6MDate = EOMONTH(TODAY(),-6) + 1
+		VAR dtLast2YDate = EDATE(dtTodayDate, -24)
+		VAR dtLast3YDate = EDATE(dtTodayDate, -36)
+		VAR dtLast4YDate = EDATE(dtTodayDate, -48)
+		VAR dtLast7YDate = EDATE(dtTodayDate, -84)
+		VAR dtWeekStartDate = BaseDate - WEEKDAY(BaseDate,1)+1
+		VAR dtWeekEndDate = BaseDate - WEEKDAY(BaseDate,1)+7
+				
+		VAR intLast12MQuarter = QUARTER(EOMONTH(TODAY(),-12) + 1)
+		VAR intLast12MYear = YEAR(EOMONTH(TODAY(),-12) + 1)
+						
+		//----------------------------------------------------------------------------
+		//VAR dtPCBillingStart = IF(intDayNumberOfMonth>= 26, DATE(intYearDate, intMonthNumberOfYear, 26), IF(intMonthNumberOfYear=1, DATE(intYearDate-1, 12, 26), DATE(intYearDate, intMonthNumberOfYear-1, 26)))
+		VAR dtPCBillingStart = IF(DAY(TODAY()) >= 26 && DAY(TODAY()) <= 31, 
+				DATEVALUE(CONVERT(MONTH(TODAY()), STRING) & "/" & CONVERT(26, STRING) & "/" & CONVERT(YEAR(TODAY()), STRING)),
+				IF(DAY(TODAY()) >= 1 && DAY(TODAY()) <= 25 && MONTH(TODAY())<>1, 
+				DATEVALUE(CONVERT(MONTH(TODAY())-1, STRING) & "/" & CONVERT(26, STRING) & "/" & CONVERT(YEAR(TODAY()), STRING)),
+				DATEVALUE(CONVERT(12, STRING) & "/" & CONVERT(26, STRING) & "/" & CONVERT(YEAR(TODAY())-1, STRING))
+				)
+				)
+
+		//VAR dtPCBillingEnd = IF(intDayNumberOfMonth>= 26, IF(intMonthNumberOfYear=12, DATE(intYearDate+1, 1, 25), DATE(intYearDate, intMonthNumberOfYear+1, 25)), DATE(intYearDate, intMonthNumberOfYear, 25))		
+		VAR dtPCBillingEnd = IF(DAY(TODAY()) >= 1 && DAY(TODAY()) <= 25, 
+				DATEVALUE(CONVERT(MONTH(TODAY()), STRING) & "/" & CONVERT(25, STRING) & "/" & CONVERT(YEAR(TODAY()), STRING)),
+				IF(DAY(TODAY()) >= 26 && DAY(TODAY()) <= 31 && MONTH(TODAY())<>12, 
+				DATEVALUE(CONVERT(MONTH(TODAY())+1, STRING) & "/" & CONVERT(25, STRING) & "/" & CONVERT(YEAR(TODAY()), STRING)),
+				DATEVALUE(CONVERT(1, STRING) & "/" & CONVERT(25, STRING) & "/" & CONVERT(YEAR(TODAY())+1, STRING))
+				)
+				)
+		VAR strPCBillingCycle = CONVERT(FORMAT(dtPCBillingStart, "yyyymmdd"), STRING) & " Thru " & CONVERT(FORMAT(dtPCBillingEnd, "yyyymmdd"), STRING)
+		VAR strIsThisPCBillingCycle = IF(BaseDate>= dtPCBillingStart && BaseDate <= dtPCBillingEnd, "Yes", "No")
+		//----------------------------------------------------------------------------
+		VAR dtPCBillingStartLastCycle = EDATE(dtPCBillingStart,-1)
+		VAR dtPCBillingEndLastCycle = EDATE(dtPCBillingEnd, -1)		
+		VAR strPCBillingLastCycle = CONVERT(FORMAT(dtPCBillingStartLastCycle, "yyyymmdd"), STRING) & " Thru " & CONVERT(FORMAT(dtPCBillingEndLastCycle, "yyyymmdd"), STRING)
+		VAR strIsPreviousPCBillingCycle = IF(BaseDate>= dtPCBillingStartLastCycle && BaseDate <= dtPCBillingEndLastCycle, "Yes", "No")
+		//------------------------------------------------------------------------------
+		
+		VAR dtLast6PCBillingStartCycle = EDATE(dtPCBillingStart,-6)
+		VAR strIsLast6PCBillingStartCycle = IF(BaseDate>=dtLast6PCBillingStartCycle && BaseDate <= dtPCBillingEnd, "Yes", "No")		
+		//------------------------------------------------------------------------------
+		
+		VAR strIsLast2YDate = IF(BaseDate<=dtTodayDate && BaseDate >= dtLast2YDate, "Yes", "No")
+		VAR strIsLast3YDate = IF(BaseDate<=dtTodayDate && BaseDate >= dtLast3YDate, "Yes", "No")
+		VAR strIsLast4YDate = IF(BaseDate<=dtTodayDate && BaseDate >= dtLast4YDate, "Yes", "No")
+		VAR strIsLast7YDate = IF(BaseDate<=dtTodayDate && BaseDate >= dtLast7YDate, "Yes", "No")	
+		VAR strIsLast4WDate = IF(BaseDate<=dtThisWeekendDate && BaseDate >= dtLast4WDate, "Yes", "No")
+		VAR strIsLast6MDate = IF(BaseDate>= dtLast6MDate && BaseDate<= dtThisMonthEndDate, "Yes","No")
+		VAR strIsLast4QDate = IF(intCalendarQuarter>= intLast12MQuarter && intYearDate >= intLast12MYear && BaseDate<=dtTodayDate,"Yes", "No")
+		
+		VAR strIsToday = IF(FORMAT(BaseDate, "mm/dd/yyyy") = FORMAT(NOW(), "mm/dd/yyyy"), "Yes", "No")
+		VAR strIsThisWeek = IF(WEEKNUM(NOW(),1) = intWeekNumberOfYear && YEAR(NOW()) = intYearDate, "Yes", "No")
+		VAR strIsThisMonth = IF(MONTH(TODAY()) = intMonthNumberOfYear && YEAR(NOW()) = intYearDate, "Yes", "No")
+		VAR strIsThisQuarter = IF(QUARTER(TODAY()) = intCalendarQuarter && YEAR(NOW()) = intYearDate, "Yes", "No")
+		
+		//-------------------------------------------------------------------------------
+		
+		//VAR dtPCFinancialBillingCycle = IF(intDayNumberOfMonth>= 26, DATE(intYearDate, intMonthNumberOfYear, 26), IF(intMonthNumberOfYear=1, DATE(intYearDate-1, 12, 26), DATE(intYearDate, intMonthNumberOfYear-1, 26)))
+		//FORMAT(BaseDate, "yyyymmdd")
+		
+		//VAR CalendarWeek = 
+		//VAR CalendarWeekDesc = 
+		//VAR CalendarWeekEndingDate = 
+		//VAR EndOfMonth 
+		//VAR EndOfMonthName 
+		//VAR WeekDayIndicator 
+		//VAR LastDayOfWeekIndicator = 
+		//VAR LastDayOfMonthIndicator = 
+		//VAR PCFinancialBillingCycle 
+		//VAR PCFinancialBilingEnd
+		//VAR AmexBillingCycle
+		//VAR AmexBillingEnd
+		//VAR RBCVisaBillingCyle
+		//VAR RBCVisaBillingEnd
+		//VAR	MonthNumber = MONTH([Date])
+		
+		//VAR	YearMonthName = FORMAT([Date], "mmm yy")
+		//VAR	YearMonthNumber = YearDate * 12 + MonthNumber - 1
+		RETURN ROW (
+			//"Date", BaseDate,
+			"DateFormat", dtDateFormat,
+			"DateYearMonth", dtDateYearMonth,
+			"DayNumberOfWeek", intDayNumberOfWeek,
+			"EnglishDayNameOfWeek", strEnglishDayNameOfWeek,
+			"DayNumberOfMonth", intDayNumberOfMonth,			
+			"DayNumberOfYear", intDayNumberOfYear,			
+			"WeekNumberOfYear", intWeekNumberOfYear,
+			"MonthNumberOfYear", intMonthNumberOfYear,
+			"EnglishMonthName", strMonthName,
+			"CalendarYear", intYearDate,
+			"CalendarYearDesc", strCalendarYearDesc,
+			"CalendarYearMonthName", dtCalendarYearMonthName,
+			"CalendarMonthNameYear", dtCalendarMonthNameYear,
+			"CalendarYearMonth", strCalendarYearMonth,
+			"CalendarYearMonthFirst", dtCalendarYearMonthFirst,
+			"CalendarYearMonthDayName", dtCalendarYearMonthDayName,
+			"CalendarSemester", intCalendarSemester,
+			"CalendarSemesterDesc", strCalendarSemesterDesc,
+			"CalendarQuarter", intCalendarQuarter,
+			"CalendarQuarterDesc", strCalendarQuarterDesc,
+			"CalendarWeek", intWeekNumberOfYear,
+			"CalendarWeekDesc", strCalendarWeekDesc,
+			"TodayDate", dtTodayDate,
+			"ThisWeekendDate", dtThisWeekendDate,
+			"ThisMonthEndDate", dtThisMonthEndDate,
+			"WeekStartDate", dtWeekStartDate,
+			"WeekEndDate", dtWeekEndDate,
+			
+			"Last6MDate" , dtLast6MDate,
+			"Last2YDate" , dtLast2YDate,
+			"Last3YDate" , dtLast3YDate,
+			"Last4YDate" , dtLast4YDate,
+			"Last7YDate" , dtLast7YDate,
+			"Last4WDate" , dtLast4WDate,
+			
+		    "IsLast2YDate" , strIsLast2YDate,
+		    "IsLast3YDate" , strIsLast3YDate,
+		    "IsLast4YDate" , strIsLast4YDate,
+		    "IsLast7YDate" , strIsLast7YDate,
+			"IsLast4WDate" , strIsLast4WDate,
+			"IsLast6MDate" , strIsLast6MDate,
+			"IsLast4QDate" , strIsLast4QDate,
+			
+			"IsToday", strIsToday,
+			"IsThisWeek", strIsThisWeek,
+			"IsThisMonth", strIsThisMonth,
+			"IsThisQuarter", strIsThisQuarter,
+			
+			"PCBillingStart", dtPCBillingStart,
+			"PCBillingEnd", dtPCBillingEnd,			
+			"PCBillingCycle", strPCBillingCycle,
+			"IsThisPCBillingCycle", strIsThisPCBillingCycle,
+			
+			"PCBillingStartLastCycle", dtPCBillingStartLastCycle,
+			"PCBillingEndLastCycle", dtPCBillingEndLastCycle,
+			"PCBillingLastCycle", strPCBillingLastCycle,
+			"IsPreviousPCBillingCycle", strIsPreviousPCBillingCycle
+												
+			//"DateYearMonth", dtDateYearMonth
+			//"Year", YearDate,
+			//"Month Number", MonthNumber,
+			//"Month", MonthName,
+			//"Year Month Number", YearMonthNumber,
+			//"Year Month", YearMonthName
+			)
+		)
+
+
+
+//5 GENERATE function
+EVALUATE
+VAR BaseCalendar = 
+	CALENDARAUTO()
+	//CALENDAR( DATE(2016,1,1), DATE(2018,12,31) )
+RETURN
+	GENERATE(
+		BaseCalendar,
+		//VAR	BaseDate = [Date]
+		VAR	YearDate = YEAR(BaseDate)
+		VAR	MonthNumber = MONTH(BaseDate)
+		VAR	MonthName = FORMAT(BaseDate, "mmmm")
+		VAR	YearMonthName = FORMAT(BaseDate, "mmm yy")
+		VAR	YearMonthNumber = YearDate * 12 + MonthNumber - 1
+		RETURN ROW (
+			"Day", [Date],
+			"Year", YearDate,
+			"Month Number", MonthNumber,
+			"Month", MonthName,
+			"Year Month Number", YearMonthNumber,
+			"Year Month", YearMonthName
+			)
+		)
+
+

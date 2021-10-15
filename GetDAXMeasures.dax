@@ -1,30 +1,63 @@
-﻿
+﻿//-----------------------------------------------
+select * from $SYSTEM.TMSCHEMA_COLUMNS where [Type]  = 2;
+select * from $SYSTEM.TMSCHEMA_MEASURES
+select * from $SYSTEM.TMSCHEMA_TABLES
+
+SELECT [ID], [Name], [IsHidden]
+FROM $SYSTEM.TMSCHEMA_TABLES
+
+
+//-------------------------------------------------
+SELECT  *
+FROM $SYSTEM.DISCOVER_CALC_DEPENDENCY
+WHERE 	OBJECT_TYPE = 'CALC_TABLE'
+
+SELECT  OBJECT_TYPE,
+		[TABLE],
+		OBJECT,
+		EXPRESSION,
+		REFERENCED_OBJECT_TYPE,
+		REFERENCED_TABLE
+FROM $SYSTEM.DISCOVER_CALC_DEPENDENCY
+WHERE 	OBJECT_TYPE = 'CALC_TABLE'
+AND 	REFERENCED_OBJECT_TYPE = 'TABLE'
+
+//-----------------------------------------------
+//Calculated Columns
+
+//https://community.powerbi.com/t5/Desktop/List-ALL-Calculated-COLUMNS-in-a-Data-Model/td-p/152291
+SELECT  * FROM $SYSTEM.TMSCHEMA_COLUMNS WHERE [Type]=2
+
+SELECT  TableID, DisplayFolder, ExplicitName, Expression, FormatString
+FROM $SYSTEM.TMSCHEMA_COLUMNS 
+WHERE [Type]=2
+order by TableID
+
+
 //https://exceleratorbi.com.au/getting-started-dax-studio/
-
-
 //select * from $SYSTEM.MDSCHEMA_MEASURES
-
------------------------------------------------
-select 
-   MEASUREGROUP_NAME, 
-   MEASURE_NAME, 
-   EXPRESSION
-
-from $SYSTEM.MDSCHEMA_MEASURES
-
+//-----------------------------------------------
+SELECT MEASURE_AGGREGATOR, CUBE_NAME, MEASURE_DISPLAY_FOLDER, MEASUREGROUP_NAME, MEASURE_NAME, EXPRESSION
+FROM  $SYSTEM.MDSCHEMA_MEASURES
 where MEASURE_AGGREGATOR = 0
-
 order by MEASUREGROUP_NAME
 
------------------------------------------------
 
-select 
-   MEASUREGROUP_NAME, 
-   MEASURE_NAME, 
-   EXPRESSION
+//-------------------------------------------------------------------------
+//https://blog.crossjoin.co.uk/2011/09/17/documenting-dependencies-between-dax-calculations/
+//https://msdn.microsoft.com/en-us/library/gg471590(v=sql.110).aspx
+select * from $SYSTEM.DISCOVER_CALC_DEPENDENCY
 
-from $SYSTEM.MDSCHEMA_MEASURES
+//--------------------------------------------------------------------------
 
-where MEASURE_AGGREGATOR = 0
+SELECT * From $SYSTEM.DISCOVER_CALC_DEPENDENCY 
+ WHERE OBJECT_TYPE = 'MEASURE' OR OBJECT_TYPE = 'CALC_COLUMN'
+ ORDER BY [EXPRESSION] ASC
 
-order by MEASUREGROUP_NAME
+select * from $SYSTEM.TMSCHEMA_TABLe_STORAGES
+select * from $SYSTEM.TMSCHEMA_STORAGE_FOLDERS
+TMSCHEMA_COLUMNS
+TMSCHEMA_MEASURES
+TMSCHEMA_MODEL
+TMSCHEMA_RELATIONSHIPS
+TMSCHEMA_TABLES

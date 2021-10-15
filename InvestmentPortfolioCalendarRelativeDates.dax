@@ -1,0 +1,64 @@
+﻿
+//---- Investment Portfolio
+//---- Calculated Columns
+//-------------------------------------------------------------------
+FinName =
+RELATED ( FI[FinName] )
+
+FundName =
+RELATED ( Fund[FundName] )
+
+PlanDesc =
+RELATED ( Plan[PlanDesc] )
+
+//--------------------------------------------------------------------
+LastMarketDate =
+VAR LastMarketDate = MAX ( FundMarket[TranDate] ) RETURN LastMarketDate
+//-------------------------------------------------------------------
+TodayDate =
+TODAY ()
+
+//-------------------------------------------------------------------
+IsToday =
+VAR currentrowdate =
+    FORMAT ( 'Date'[Date], "mm/dd/yyyy" )
+VAR istoday =
+    FORMAT ( NOW (), "mm/dd/yyyy" )
+RETURN
+    IF ( istoday = currentrowdate, "Yes", "No" )
+//-------------------------------------------------------------------
+
+Last5YDate =
+VAR currentrowdate = 'Date'[Date]
+VAR last5ydate =
+    EDATE ( 'Date'[TodayDate], -60 )
+VAR todaydate =
+    TODAY ()
+RETURN
+    IF ( currentrowdate <= todaydate && currentrowdate >= last5ydate, "Yes", "No" )
+//--------------------------------------------------------------------
+
+Last2YDate =
+VAR currentrowdate = 'Date'[Date]
+VAR last2ydate =
+    EDATE ( 'Date'[TodayDate], -24 )
+VAR todaydate =
+    TODAY ()
+RETURN
+    IF ( currentrowdate <= todaydate && currentrowdate >= last2ydate, "Yes", "No" )
+    
+    
+//--------------------------------------------------------------------
+Last2YMarketDate =
+VAR currentrowdate = 'Date'[Date]
+VAR last2ymarketdate =
+    EDATE ( 'Date'[LastMarketDate], -23 )
+VAR maxmarketdate =
+    MAX ( FundMarket[TranDate] )
+RETURN
+    IF (
+        currentrowdate <= maxmarketdate
+            && currentrowdate >= last2ymarketdate,
+        "Yes",
+        "No"
+    )

@@ -1,0 +1,259 @@
+﻿IsThisWeek =
+VAR currentrowweek =
+    WEEKNUM ( 'Calendar'[CalendarWeekEndingDate], 1 )
+VAR isthisweek =
+    WEEKNUM ( NOW (), 1 )
+VAR currentrowyear =
+    YEAR ( 'Calendar'[CalendarWeekEndingDate] )
+VAR isthisyear =
+    YEAR ( NOW () )
+RETURN
+    IF ( isthisweek = currentrowweek && isthisyear = currentrowyear, "Yes", "No" )
+
+//-------------------------------------------------------------------------
+Last7YDate =
+VAR currentrowdate = 'Calendar'[Date]
+VAR last7ydate =
+    EDATE ( 'Calendar'[TodayDate], -84 )
+VAR todaydate =
+    TODAY ()
+RETURN
+    IF ( currentrowdate <= todaydate && currentrowdate >= last7ydate, "Yes", "No" )
+//-------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------
+
+Last4WDate =
+VAR currentrowdate = 'Calendar'[Date]
+VAR thisweekenddate =
+    TODAY ()
+        + ( 7 - WEEKDAY ( TODAY (), 1 ) )
+VAR last4wendingdate =
+     (
+        TODAY ()
+            + ( 7 - WEEKDAY ( TODAY (), 1 ) )
+    ) - 30
+RETURN
+    IF (
+        currentrowdate >= last4wendingdate
+            && currentrowdate <= thisweekenddate,
+        "Yes",
+        "No"
+    )
+//-------------------------------------------------------------------------
+
+WeekStartDate =
+'Calendar'[Date] - WEEKDAY ( 'Calendar'[Date], 1 ) + 1
+
+//-------------------------------------------------------------------------
+
+IsPreviousPCBillingCycle =
+VAR currentrowdate = 'Calendar'[Date]
+VAR currentPCBillingStartLastCycle = 'Calendar'[PCBillingStartLastCycle]
+VAR currentPCBillingEndLastCycle = 'Calendar'[PCBillingEndLastCycle]
+RETURN
+    IF (
+        currentrowdate >= currentPCBillingStartLastCycle
+            && currentrowdate <= currentPCBillingEndLastCycle,
+        "Yes",
+        "No"
+    )
+//-------------------------------------------------------------------------
+WeekEndDate =
+'Calendar'[Date] - WEEKDAY ( 'Calendar'[Date], 1 ) + 7
+//-------------------------------------------------------------------------
+TodayDate = TODAY()
+//-------------------------------------------------------------------------
+PCBillingEndLastCycle =
+EDATE ( 'Calendar'[PCBillingEnd], -1 )
+//-------------------------------------------------------------------------
+Last6PCBillingCycle =
+VAR currentrowdate = 'Calendar'[Date]
+VAR thispcbillingcycleend = 'Calendar'[PCBillingEnd]
+VAR last6pcbillingcycle =
+    EDATE ( 'Calendar'[PCBillingStart], -6 )
+RETURN
+    IF (
+        currentrowdate >= last6pcbillingcycle
+            && currentrowdate <= thispcbillingcycleend,
+        "Yes",
+        "No"
+    )
+//-------------------------------------------------------------------------
+IsToday =
+VAR currentrowdate =
+    FORMAT ( 'Calendar'[Date], "mm/dd/yyyy" )
+VAR istoday =
+    FORMAT ( NOW (), "mm/dd/yyyy" )
+RETURN
+    IF ( istoday = currentrowdate, "Yes", "No" )
+
+//-------------------------------------------------------------------------
+Last2YDate =
+VAR currentrowdate = 'Calendar'[Date]
+VAR last2ydate =
+    EDATE ( 'Calendar'[TodayDate], - 24 )
+VAR todaydate =
+    TODAY ()
+RETURN
+    IF ( currentrowdate <= todaydate && currentrowdate >= last2ydate, "Yes", "No" )
+
+//-------------------------------------------------------------------------
+
+IsThisPCBillingCycle =
+VAR currentrowdate = 'Calendar'[Date]
+VAR currentPCBillingStart = 'Calendar'[PCBillingStart]
+VAR currentPCBillingEnd = 'Calendar'[PCBillingEnd]
+RETURN
+    IF (
+        currentrowdate >= currentPCBillingStart
+            && currentrowdate <= currentPCBillingEnd,
+        "Yes",
+        "No"
+    )
+
+//-------------------------------------------------------------------------
+PCBillingStartLastCycle =
+EDATE ( 'Calendar'[PCBillingStart], -1 )
+
+
+//-------------------------------------------------------------------------
+PCBillingStart =
+IF (
+    DAY ( TODAY () ) >= 26
+        && DAY ( TODAY () ) <= 31,
+    DATEVALUE (
+        CONVERT ( MONTH ( TODAY () ), STRING ) & "/"
+            & CONVERT ( 26, STRING ) & "/"
+            & CONVERT ( YEAR ( TODAY () ), STRING )
+    ),
+    IF (
+        DAY ( TODAY () ) >= 1
+            && DAY ( TODAY () ) <= 25
+            && MONTH ( TODAY () ) <> 1,
+        DATEVALUE (
+            CONVERT ( MONTH ( TODAY () ) - 1, STRING ) & "/"
+                & CONVERT ( 26, STRING ) & "/"
+                & CONVERT ( YEAR ( TODAY () ), STRING )
+        ),
+        DATEVALUE (
+            CONVERT ( 12, STRING ) & "/"
+                & CONVERT ( 26, STRING ) & "/"
+                & CONVERT ( YEAR ( TODAY () ) - 1, STRING )
+        )
+    )
+)
+
+//-------------------------------------------------------------------------
+
+Last6MDate =
+VAR currentrowdate = 'Calendar'[Date]
+VAR last6mdate =
+    EOMONTH ( TODAY (), -6 ) + 1
+VAR thismonthend =
+    EOMONTH ( TODAY (), 0 )
+RETURN
+    IF (
+        currentrowdate >= last6mdate
+            && currentrowdate <= thismonthend,
+        "Yes",
+        "No"
+    )
+    
+//-------------------------------------------------------------------------
+PCBillingEnd =
+IF (
+    DAY ( TODAY () ) >= 1
+        && DAY ( TODAY () ) <= 25,
+    DATEVALUE (
+        CONVERT ( MONTH ( TODAY () ), STRING ) & "/"
+            & CONVERT ( 25, STRING ) & "/"
+            & CONVERT ( YEAR ( TODAY () ), STRING )
+    ),
+    IF (
+        DAY ( TODAY () ) >= 26
+            && DAY ( TODAY () ) <= 31
+            && MONTH ( TODAY () ) <> 12,
+        DATEVALUE (
+            CONVERT ( MONTH ( TODAY () ) + 1, STRING ) & "/"
+                & CONVERT ( 25, STRING ) & "/"
+                & CONVERT ( YEAR ( TODAY () ), STRING )
+        ),
+        DATEVALUE (
+            CONVERT ( 1, STRING ) & "/"
+                & CONVERT ( 25, STRING ) & "/"
+                & CONVERT ( YEAR ( TODAY () ) + 1, STRING )
+        )
+    )
+)
+
+//-------------------------------------------------------------------------
+
+ThisQuarter = QUARTER(TODAY())
+//-------------------------------------------------------------------------
+
+ThisYear = YEAR(TODAY())
+//-------------------------------------------------------------------------
+
+IsThisQuarter =
+VAR currentrowquarter = 'Calendar'[CalendarQuarter]
+VAR isthisquarter =
+    QUARTER ( TODAY () )
+VAR currentrowyear = 'Calendar'[CalendarYear]
+VAR isthisyear =
+    YEAR ( TODAY () )
+RETURN
+    IF (
+        isthisquarter = currentrowquarter
+            && isthisyear = currentrowyear,
+        "Yes",
+        "No"
+    )
+//-------------------------------------------------------------------------
+
+IsThisMonth =
+VAR currentrowmonth = 'Calendar'[MonthNumberOfYear]
+VAR isthismonth =
+    MONTH ( TODAY () )
+VAR currentrowyear = 'Calendar'[CalendarYear]
+VAR isthisyear =
+    YEAR ( TODAY () )
+RETURN
+    IF ( isthismonth = currentrowmonth && isthisyear = currentrowyear, "Yes", "No" )
+    
+//-------------------------------------------------------------------------
+
+Last4QDate =
+VAR currentrowquarter = 'Calendar'[CalendarQuarterDesc]
+VAR thisrowquarter =
+    CALCULATE (
+        MAX ( 'Calendar'[CalendarQuarterDesc] ),
+        FILTER ( ALL ( 'Calendar'[Date] ), 'Calendar'[Date] == TODAY () )
+    )
+VAR previous4quarters =
+    CALCULATE (
+        MAX ( 'Calendar'[CalendarQuarterDesc] ),
+        FILTER (
+            ALL ( 'Calendar'[Date] ),
+            'Calendar'[Date]
+                == EOMONTH ( TODAY (), -12 ) + 1
+        )
+    )
+RETURN
+    IF (
+        currentrowquarter >= previous4quarters
+            && currentrowquarter <= thisrowquarter,
+        "Yes",
+        "No"
+    )
+
+//---------------------------------------------------------------------------
+
+--Calculated Column Folder Metric
+--Data Set: Expenses
+--Folder: Metric
+DAXAmountCAD =
+IF (
+    ISBLANK ( Expenses[AmountCAD1] ),
+    Expenses[AmountCAD2],
+    Expenses[AmountCAD1]

@@ -1,0 +1,180 @@
+﻿//Lead Tracking
+//Calculated Column
+DIVISION =
+SWITCH (
+    [Region],
+    "ENV Region 1", "ENV",
+    "ENV Region 2", "ENV",
+    "IS North", "IS",
+    "IS South", "IS",
+    "VF Central", "VF",
+    "VF North", "VF",
+    "VF South", "VF",
+    "ADMIN"
+)
+
+//Lead Tracking
+//Measures
+
+//----------------------------
+Completion Rate :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER ( query1, Query1[CompletedYN] = "Yes" )
+)
+    / COUNTROWS ( Query1 )
+
+//----------------------------
+Last Updated :=
+MAX ( Query1[Date Updated] )
+
+
+//----------------------------
+Leads per Employee :=
+COUNT ( Query1[contactId] ) / DISTINCTCOUNT ( Query1[Empl Name] )
+
+//----------------------------
+Total Leads :=
+DISTINCTCOUNT ( Query1[contactId] )
+
+//----------------------------
+In Progress% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER ( query1, Query1[In Progress] = "Yes" && Query1[CompletedYN] = "No" )
+)
+    / COUNTROWS ( Query1 )
+
+
+//----------------------------
+Not Started% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER ( query1, Query1[In Progress] = "No" && Query1[CompletedYN] = "No" )
+)
+    / COUNTROWS ( Query1 )
+
+//----------------------------
+No Outcome% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER (
+        query1,
+        Query1[CurrentState] = "Opportunity"
+            && Query1[CompletedYN] = "Yes"
+    )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+//----------------------------
+Decline No Contact% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER (
+        query1,
+        Query1[CurrentState] = "Declined"
+            && Query1[con_reasonDeclined] = "No Contact"
+            && Query1[CompletedYN] = "Yes"
+    )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+//----------------------------
+Decline Qualified% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER (
+        query1,
+        Query1[CurrentState] = "Declined"
+            && Query1[con_reasonDeclined] = "Qualified"
+            && Query1[CompletedYN] = "Yes"
+    )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+//----------------------------
+Decline Not Interested% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER (
+        query1,
+        Query1[CurrentState] = "Declined"
+            && Query1[con_reasonDeclined] = "Not Interested"
+            && Query1[CompletedYN] = "Yes"
+    )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+
+//----------------------------
+Decline Other% :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER (
+        query1,
+        Query1[CurrentState] = "Declined"
+            && Query1[con_reasonDeclined] <> "No Contact"
+            && Query1[con_reasonDeclined] <> "Qualified"
+            && Query1[con_reasonDeclined] <> "Not Interested"
+            && Query1[CompletedYN] = "Yes"
+    )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+
+//----------------------------
+MAX Date Created :=
+MAX ( Query1[Date Created] )
+
+
+//----------------------------
+MIN Date Created :=
+MIN ( Query1[Date Created] )
+
+
+//----------------------------
+$pC :=
+CALCULATE (
+    SUM ( Query1[Total Sales] ),
+    FILTER ( query1, Query1[CompletedYN] = "Yes" )
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER ( query1, Query1[CompletedYN] = "Yes" )
+    )
+
+
+//----------------------------
+Sales Rate :=
+CALCULATE (
+    COUNTROWS ( query1 ),
+    FILTER ( Query1, Query1[SaleYN] = "Yes" ),
+    Query1[CompletedYN] = "Yes"
+)
+    / CALCULATE (
+        COUNTROWS ( query1 ),
+        FILTER (
+            Query1,
+            Query1[con_currentState] = "S"
+                || Query1[con_currentState] = "D"
+        )
+    )
+
+
+
+

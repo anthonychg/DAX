@@ -1,0 +1,398 @@
+﻿//Investment Portfolio
+//Standard Measures KPI
+
+Last Refreshed (Local) := FORMAT(LASTDATE(LastRefresh_Local[LastRefresh]),"mmm dd, yyyy hh:mm:ss AM/PM")
+
+//---------------------------------------------------------
+Cumulative Deposit := CALCULATE(SUM(FundTran[Amount]), 
+				FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 
+				FILTER(FundTranCode,FundTranCode[TranCode]= "OPEN" || FundTranCode[TranCode]= "CDEP" || FundTranCode[TranCode]= "SWIN" || FundTranCode[TranCode]= "SWOT" ||  FundTranCode[TranCode]= "WDRW" || FundTranCode[TranCode]= "SDEP")
+	)
+	
+//---------------------------------------------------------
+Fee := IF(ISBLANK(CALCULATE(
+				SUM(FundTran[Amount]),					
+					FILTER(FundTranCode,FundTranCode[TranCode]="FFEE")
+			)), 0, CALCULATE(
+				SUM(FundTran[Amount]),					
+					FILTER(FundTranCode,FundTranCode[TranCode]="FFEE")
+			))
+
+//---------------------------------------------------------
+Cumulative Divident Pct := DIVIDE([Cumulative Divident], [Cumulative Book],0)
+
+//---------------------------------------------------------
+Cumulative Fee := CALCULATE(SUM(FundTran[Amount]), 
+				FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 
+				FILTER(FundTranCode,FundTranCode[TranCode]="FFEE")
+	)
+	
+//---------------------------------------------------------
+Cumulative Grant := IF(ISBLANK(CALCULATE(SUM(FundTran[Amount]), 				
+			FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 				
+			FILTER(FundTranCode,	OR (
+							FundTranCode[TranCode]= "CESG",
+							FundTranCode[TranCode]= "BCTE"
+						)
+					)
+				)),0,
+                CALCULATE(SUM(FundTran[Amount]), 
+				
+			FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 
+				
+			FILTER(FundTranCode,	OR (
+							FundTranCode[TranCode]= "CESG",
+							FundTranCode[TranCode]= "BCTE"
+						)
+					)		
+
+				))"
+				
+//---------------------------------------------------------
+Cumulative Interest := CALCULATE(SUM(FundTran[Amount]), 
+				FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 
+				FILTER(FundTranCode,FundTranCode[TranCode]="CINT")
+	)
+	
+//---------------------------------------------------------
+Cumulative Growth Pct := DIVIDE([Cumulative Growth], [Cumulative Book],0)
+
+//---------------------------------------------------------
+Cumulative Growth Previous Quarter := CALCULATE([Cumulative Growth], PARALLELPERIOD('Date'[Date],-1,QUARTER))
+
+//---------------------------------------------------------
+Cumulative Growth Quarterly := CALCULATE([Cumulative Growth]-[Cumulative Growth Previous Quarter])
+
+//---------------------------------------------------------
+Cumulative Growth Quarterly Pct := IF(ISBLANK([Cumulative Market]), 
+	BLANK(),
+	CALCULATE([Cumulative Growth Quarterly]/[Cumulative Growth Previous Quarter])
+   )
+   
+//---------------------------------------------------------
+Cumulative Growth Same Period Last Year := CALCULATE([Cumulative Growth], SAMEPERIODLASTYEAR('Date'[Date]))
+
+//---------------------------------------------------------
+Cumulative Growth Yearly := IF(ISBLANK([Cumulative Market]) || ISBLANK([Cumulative Growth Same Period Last Year]), BLANK(), CALCULATE([Cumulative Growth]-[Cumulative Growth Same Period Last Year]))
+
+//---------------------------------------------------------
+Cumulative Growth Yearly Pct := IF(ISBLANK([Cumulative Market]), BLANK(), 
+	CALCULATE([Cumulative Growth Yearly]/[Cumulative Growth Same Period Last Year])
+	)
+	
+//---------------------------------------------------------
+Cumulative Growth := IF(ISBLANK([Cumulative Market]),BLANK(), CALCULATE([Cumulative Market]-[Cumulative Book]))
+
+//---------------------------------------------------------
+Cumulative Matching := CALCULATE(SUM(FundTran[Amount]), 
+				FILTER(ALL('Date'[Date]),'Date'[Date]<=MAX('Date'[Date])), 
+				FILTER(FundTranCode,FundTranCode[TranCode]="CDER")
+	)
+	
+//---------------------------------------------------------
+Sum of Amount :=
+SUM ( 'FundTran'[Amount] )
+
+//---------------------------------------------------------
+YTD Book :=
+CALCULATE (
+    [YTD Deposit] + [YTD Fee] + [YTD Interest] + [YTD Grant] + [YTD Matching] + [YTD Divident]
+)
+
+//---------------------------------------------------------
+YTD Deposit :=
+CALCULATE (
+    SUM ( FundTran[Amount] ),
+    DATESYTD ( 'Date'[Date] ),
+    FILTER (
+        FundTranCode,
+        FundTranCode[TranCode] = "OPEN"
+            || FundTranCode[TranCode] = "CDEP"
+            || FundTranCode[TranCode] = "SWIN"
+            || FundTranCode[TranCode] = "SWOT"
+            || FundTranCode[TranCode] = "WDRW"
+            || FundTranCode[TranCode] = "SDEP"
+    )
+)	
+//---------------------------------------------------------
+YTD Divident :=
+CALCULATE (
+    SUM ( FundTran[Amount] ),
+    DATESYTD ( 'Date'[Date] ),
+    FILTER ( FundTranCode, FundTranCode[TranCode] = "DIVD" )
+)	
+//---------------------------------------------------------
+YTD Fee :=
+CALCULATE (
+    SUM ( FundTran[Amount] ),
+    DATESYTD ( 'Date'[Date] ),
+    FILTER ( FundTranCode, FundTranCode[TranCode] = "FFEE" )
+)	
+	
+	
+//---------------------------------------------------------
+YTD Grant := CALCULATE(SUM(FundTran[Amount]), 
+				
+			DATESYTD('Date'[Date]), 
+				
+			FILTER(FundTranCode,	OR (
+							FundTranCode[TranCode]= "CESG",
+							FundTranCode[TranCode]= "BCTE"
+						)
+					)		
+
+				)
+				
+//---------------------------------------------------------
+YTD Interest :=
+CALCULATE (
+    SUM ( FundTran[Amount] ),
+    DATESYTD ( 'Date'[Date] ),
+    FILTER ( FundTranCode, FundTranCode[TranCode] = "CINT" )
+)	
+//---------------------------------------------------------
+YTD Matching :=
+CALCULATE (
+    SUM ( FundTran[Amount] ),
+    DATESYTD ( 'Date'[Date] ),
+    FILTER ( FundTranCode, FundTranCode[TranCode] = "CDER" )
+)	
+//---------------------------------------------------------
+Cumulative Market :=
+CALCULATE (
+    AVERAGE ( FundMarket[Amount] ),
+    FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] = MAX ( 'Date'[Date] ) )
+)
+
+
+//---------------------------------------------------------
+Market Last Date :=
+LASTNONBLANK ( FundMarket[TranDate], 1 )
+
+//---------------------------------------------------------
+Divident :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "DIVD" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "DIVD" )
+    )
+)
+//---------------------------------------------------------
+Contribution :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER (
+                FundTranCode,
+                OR ( FundTranCode[TranCode] = "CDEP", FundTranCode[TranCode] = "SDEP" )
+            )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER (
+            FundTranCode,
+            OR ( FundTranCode[TranCode] = "CDEP", FundTranCode[TranCode] = "SDEP" )
+        )
+    )
+)
+
+
+//---------------------------------------------------------
+Employer Matching :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "CDER" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "CDER" )
+    )
+)			
+			
+//---------------------------------------------------------			
+Interest :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "CINT" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "CINT" )
+    )
+)
+
+//---------------------------------------------------------			
+Cumulative Divident :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "DIVD" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( ALL ( 'Date'[Date] ), 'Date'[Date] <= MAX ( 'Date'[Date] ) ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "DIVD" )
+    )
+)
+
+
+//---------------------------------------------------------
+Withdrawal :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "WDRW" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "WDRW" )
+    )
+)			
+//---------------------------------------------------------			
+
+Government Grant :=
+IF (
+    ISBLANK (
+        CALCULATE (
+            SUM ( FundTran[Amount] ),
+            FILTER ( FundTranCode, FundTranCode[TranCode] = "BCTE" )
+        )
+    ),
+    0,
+    CALCULATE (
+        SUM ( FundTran[Amount] ),
+        FILTER ( FundTranCode, FundTranCode[TranCode] = "BCTE" )
+    )
+)			
+
+
+//---------------------------------------------------------			
+Quarterly Market Value :=
+IF (
+    ISFILTERED ( 'Date'[CalendarQuarterDesc] ),
+    SUM ( FundMarket[Amount] ),
+    BLANK ()
+)
+
+
+//---------------------------------------------------------
+Overall Growth :=
+IF (
+    ISBLANK ( [Quarterly Market Value] ),
+    BLANK (),
+    CALCULATE ( [Quarterly Market Value] - [Cumulative Book] )
+)
+
+
+//---------------------------------------------------------
+Overall Growth Pct :=
+DIVIDE ( [Overall Growth], [Cumulative Book], 0 )
+
+
+//---------------------------------------------------------
+Cumulative Contribution :=
+CALCULATE (
+    [Cumulative Deposit] + [Cumulative Fee] + [Cumulative Interest] + [Cumulative Grant] + [Cumulative Matching]
+)
+
+
+//---------------------------------------------------------
+Overall Return :=
+IF (
+    ISBLANK ( [Quarterly Market Value] ),
+    BLANK (),
+    CALCULATE ( [Quarterly Market Value] - [Cumulative Contribution] )
+)
+
+
+//---------------------------------------------------------
+Overall Return Pct :=
+DIVIDE ( [Overall Return], [Cumulative Contribution], 0 )
+
+
+//---------------------------------------------------------
+Overall Growth PQ :=
+IF (
+    ISBLANK ( [Quarterly Market Value PQ] ),
+    BLANK (),
+    CALCULATE ( [Quarterly Market Value PQ] - [Cumulative Book PQ] )
+)
+
+//---------------------------------------------------------
+Quarterly Market Value PQ :=
+IF (
+    ISFILTERED ( 'Date'[CalendarQuarterDesc] ),
+    CALCULATE (
+        SUM ( FundMarket[Amount] ),
+        PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+    ),
+    BLANK ()
+)
+
+//---------------------------------------------------------
+Cumulative Book PQ :=
+CALCULATE (
+    [Cumulative Deposit] + [Cumulative Fee] + [Cumulative Interest] + [Cumulative Grant] + [Cumulative Matching] + [Cumulative Divident],
+    PARALLELPERIOD ( 'Date'[Date], -1, QUARTER )
+)
+
+
+//---------------------------------------------------------
+Quarterly Growth :=
+CALCULATE ( [Overall Growth] - [Overall Growth PQ] )
+
+//---------------------------------------------------------
+Quarterly Growth Pct :=
+DIVIDE ( [Quarterly Growth], [Overall Growth PQ], 0 )
+
+
+//---------------------------------------------------------
+Overall Growth Pct PQ :=
+DIVIDE ( [Overall Growth PQ], [Cumulative Book PQ], 0 )
+
+//---------------------------------------------------------
+Overall Growth Pct KPI Green :=
+IF ( [Overall Growth Pct] > [Overall Growth Pct PQ], 1, 0 )
+
+//---------------------------------------------------------
+Overall Growth Pct KPI Red :=
+IF ( [Overall Growth Pct] < [Overall Growth Pct PQ], 1, 0 )
+
+//---------------------------------------------------------
+Overall Growth Pct Color KPI := SWITCH(
+	TRUE(),
+	[Overall Growth Pct] < [Overall Growth Pct PQ], "Red",
+	[Overall Growth Pct] > [Overall Growth Pct PQ], "Green",
+	"FFFF00"
+	)
+
+//---------------------------------------------------------
+Cumulative Book :=
+CALCULATE (
+    [Cumulative Deposit] + [Cumulative Fee] + [Cumulative Interest] + [Cumulative Grant] + [Cumulative Matching] + [Cumulative Divident]
+)

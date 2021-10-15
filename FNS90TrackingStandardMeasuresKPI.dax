@@ -1,0 +1,110 @@
+﻿// Measures
+
+Banking Quadrant% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[BankingQuadrantYN] = "Yes" )
+)
+    / SUM ( Query1[Total_Members] )
+
+Borrow Quadrant% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[BorrowQuadrantYN] = "Yes" )
+)
+    / SUM ( Query1[Total_Members] )
+
+Invest Quadrant% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[InvestmentQuadrantYN] = "Yes" )
+)
+    / SUM ( Query1[Total_Members] )
+
+TFSA% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[TFSAYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+NonRegInv% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[NonRegisteredInvestmentsYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+RRSPRIF% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[RRSPYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+HISA% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[HISAYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+LOAN% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[LoanYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+LOC% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[LOCYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+CREDITCARD% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[CreditCardYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+MORT% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[MortgageYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+ATMPOS% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[xBankingATMPOSTransactionYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+DIRECTDEP% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[xBankingDirectDepositTransactionYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+USER TXNS% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[xBankingUserTransactionYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+ONLINE% :=
+CALCULATE (
+    SUM ( Query1[Total_Members] ),
+    FILTER ( Query1, Query1[xBankingWebMobilPhoneTransactionYN] = 1 )
+)
+    / SUM ( Query1[Total_Members] )
+
+Monthly FNS 90 :=
+SUM ( 'Query1'[Total_FNS] ) / SUM ( Query1[Total_Members] )
+

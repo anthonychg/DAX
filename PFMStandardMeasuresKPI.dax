@@ -1,0 +1,233 @@
+﻿//CALCULATED TABLE
+
+ExpenseClassification = SUMMARIZE(Expenses,Expenses[ExpenseCategory], Expenses[ExpenseSubCategory], Expenses[ExpenseSubCategoryDetail], 
+Expenses[ExpenseDescription]) 
+
+//---------------------------------------------------------------------------------------
+Last Refreshed (Local) :=
+FORMAT (
+    LASTDATE ( LastRefresh_Local[LastRefresh] ),
+    "mmm dd, yyyy hh:mm:ss AM/PM"
+)
+//--------------------------------------------------------------------------------------
+Amount :=
+IF ( ISBLANK ( SUM ( Expenses[AmountCAD] ) ), 0, SUM ( Expenses[AmountCAD] ) )
+
+
+//--------------------------------------------------------------------------------------
+-- Month
+//--------------------------------------------------------------------------------------
+
+MsrMTDLastMonth :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    DATEADD ( DATESMTD ( Calendar[Date] ), -1, MONTH )
+)
+
+MsrMTDPreviousMonth :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    PREVIOUSMONTH( DATESMTD ( Calendar[Date] )
+)
+//----------------------------------------------------------------------------------------
+MsrMTDPctChangeMonthly :=
+IF (
+    ISBLANK ( [MsrMTDPreviousMonth] ),
+    BLANK (),
+    DIVIDE ( [MsrMTD], [MsrMTDLastMonth] ) - 1
+)
+
+//--------------------------------------------------------------------------------------
+MsrTotalMTD :=
+TOTALMTD ( SUM ( Expenses[AmountCAD] ), Calendar[Date] )
+
+//--------------------------------------------------------------------------------------
+MsrPreviousMonth :=
+CALCULATE ( SUM ( Expenses[AmountCAD] ), PREVIOUSMONTH ( 'Calendar'[Date] ) )
+
+
+//--------------------------------------------------------------------------------------
+MsrMTD :=
+CALCULATE ( SUM ( Expenses[AmountCAD] ), DATESMTD ( Calendar[Date] ) )
+
+//--------------------------------------------------------------------------------------
+
+MsrMTDLastYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    DATEADD ( DATESMTD ( Calendar[Date] ), -1, YEAR )
+)
+
+//--------------------------------------------------------------------------------------
+
+MsrMTDPctChangeLastYear :=
+IF (
+    ISBLANK ( [MsrMTDLastYear] ),
+    BLANK (),
+    DIVIDE ( [MsrMTD], [MsrMTDLastYear] ) - 1
+)
+
+
+//---------------------------------------------------------------------------------------
+-- QUARTER
+//---------------------------------------------------------------------------------------
+
+MsrQTD :=CALCULATE(
+		SUM(Expenses[AmountCAD]), DATESQTD(Calendar[Date])
+		)
+
+
+MsrQTD :=CALCULATE(
+					SUM(Expenses[AmountCAD]), DATESQTD(Calendar[Date]),
+					FILTER('Calendar', QUARTER('Calendar'[Date])= QUARTER(TODAY()) && YEAR('Calendar'[Date]) = YEAR(TODAY()))
+				)
+
+//--------------------------------------------------------------------------------------
+MsrQTDLastYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    DATEADD ( DATESQTD ( Calendar[Date] ), -1, YEAR )
+)
+
+//--------------------------------------------------------------------------------------
+MsrQTDPctChangeLastYear :=
+IF (
+    ISBLANK ( [MsrQTDLastYear] ),
+    BLANK (),
+    DIVIDE ( [MsrQTD], [MsrQTDLastYear] ) - 1
+)
+
+//--------------------------------------------------------------------------------------
+MsrQTDLastQuarter :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    DATEADD ( DATESQTD ( Calendar[Date] ), -1, QUARTER )
+)
+
+MsrQTDPreviousQuarter :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    PREVIOUSQUARTER( DATESQTD ( Calendar[Date] ))
+)
+
+//----------------------------------------------------------------------------------------
+MsrQTDPctChangeQuarterly :=
+IF (
+    ISBLANK ( [MsrQTDPreviousQuarter] ),
+    BLANK (),
+    DIVIDE ( [MsrQTD], [MsrQTDPreviousQuarter] ) - 1
+)
+
+IF (
+    ISBLANK ( [MsrAmountQTDLastQuarter] ),
+    BLANK (),
+    DIVIDE ( [MsrAmountQTD], [MsrAmountQTDLastQuarter] ) - 1
+)
+
+//--------------------------------------------------------------------------------------
+MsrTotalQTD :=
+TOTALQTD (
+    SUM ( Expenses[AmountCAD] ),
+    Calendar[Date],
+    FILTER (
+        'Calendar',
+        QUARTER ( 'Calendar'[Date] ) = QUARTER ( TODAY () )
+            && YEAR ( 'Calendar'[Date] ) = YEAR ( TODAY () )
+    )
+)
+
+
+//--------------------------------------------------------------------------------------
+--YEAR
+//--------------------------------------------------------------------------------------
+MsrSamePeriodLastYear :=CALCULATE(SUM(Expenses[AmountCAD]),SAMEPERIODLASTYEAR('Calendar'[Date]))
+MsrYTDSamePeriodLastYear :=CALCULATE(SUM(Expenses[AmountCAD]),SAMEPERIODLASTYEAR(DATESYTD('Calendar'[Date])))
+
+MsrPreviousYear :=
+CALCULATE ( SUM ( Expenses[AmountCAD] ), PREVIOUSYEAR ( 'Calendar'[Date] ) )
+
+//------------------------------------------------------------------------------------------
+MsrParallelPeriodLastYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    PARALLELPERIOD ( Calendar[Date], -1, YEAR )
+)
+
+//--------------------------------------------------------------------------------------
+MsrTotalYTD :=
+TOTALYTD ( SUM ( Expenses[AmountCAD] ), CALENDAR[Date] )
+
+//--------------------------------------------------------------------------------------
+MsrYTD :=
+CALCULATE ( SUM ( Expenses[AmountCAD] ), DATESYTD ( Calendar[Date] ) )
+
+//--------------------------------------------------------------------------------------
+MsrYTDSamePeriodLastYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    SAMEPERIODLASTYEAR ( DATESYTD ( 'Calendar'[Date] ) )
+)
+
+//--------------------------------------------------------------------------------------
+MsrYTDPctChangeYearly :=
+IF (
+    ISBLANK ( [MsrYTDPreviousYear] ),
+    BLANK (),
+    DIVIDE ( [MsrYTD], [MsrAmountYTDLastYear] ) - 1
+)
+
+//--------------------------------------------------------------------------------------
+
+MsrYTDLastYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    DATEADD ( DATESYTD ( Calendar[Date] ), -1, YEAR )
+)
+
+
+MsrYTDPreviousYear :=
+CALCULATE (
+    SUM ( Expenses[AmountCAD] ),
+    PREVIOUSYEAR ( DATESYTD ( Calendar[Date] ))
+)
+
+
+
+//--------------------------------------------------------------------------------------
+MsrYoYPctChange :=
+DIVIDE ( [Amount], [MsrSamePeriodLastYear] ) - 1
+
+
+
+//--------------------------------------------------------------------------------------
+-- KPI
+//--------------------------------------------------------------------------------------
+
+KPI Green :=
+IF ( [MsrTotalYTD] <= [MsrYTDLastYear], 1, 0 )
+
+IF ( [MsrAmountYTD] <= [MsrAmountYTDLastYear], 1, 0 )
+//--------------------------------------------------------------------------------------
+
+Color KPI :=
+SWITCH (
+    TRUE (),
+    [MsrTotalYTD] <= [MsrYTDLastYear], "#009900",
+    [MsrTotalYTD] > [MsrYTDLastYear], "#FF0000",
+    "#FFFF00"
+)
+
+
+SWITCH (
+    TRUE (),
+    [MsrAmountYTD] <= [MsrAmountYTDLastYear], "#009900",
+    [MsrAmountYTD] > [MsrAmountYTDLastYear], "#FF0000",
+    "#FFFF00"
+)
+
+//--------------------------------------------------------------------------------------
+KPI Red :=
+IF ( [MsrTotalYTD] > [MsrYTDLastYear], 1, 0 )
+
+IF ( [MsrAmountYTD] > [MsrAmountYTDLastYear], 1, 0 )
+

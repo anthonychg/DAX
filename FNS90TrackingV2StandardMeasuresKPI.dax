@@ -1,0 +1,97 @@
+﻿Region =
+SWITCH (
+    [Branch],
+    "Abbotsford Village Branch", "East",
+    "Chilliwack City Branch", "East",
+    "Garrison Village Branch", "East",
+    "High Street Branch", "East",
+    "Hope Branch", "East",
+    "Mission Branch", "East",
+    "Sardis  Branch", "East",
+    "Snow Valley  Branch", "East",
+    "Town Centre  Branch", "East",
+    "Yarrow  Branch", "East",
+    "Cloverdale Branch", "West",
+    "Fleetwood Branch", "West",
+    "Ladner Branch", "West",
+    "Newton Branch", "West",
+    "North Delta Branch", "West",
+    "Ridge Meadows Branch", "West",
+    "South Point  Branch", "West",
+    "Sunshine Hills Branch", "West",
+    "Sunwood Square Branch", "West",
+    "Tsawwassen Branch", "West",
+    "Willoughby Branch", "West",
+    "Cherry Lane", "South",
+    "Oliver", "South",
+    "Princeton", "South",
+    "Penticton Main St", "South",
+    "Peachtree Square", "South",
+    "Keremeos", "South",
+    "Guisachan Kelowna", "Central",
+    "Rutland", "Central",
+    "Downtown Kelowna", "Central",
+    "Orchard Plaza", "Central",
+    "Vintage Hills", "Central",
+    "Kamloops", "North",
+    "Lumby", "North",
+    "Vernon", "North",
+    "Armstrong", "North",
+    "Riverbend", "North",
+    "Mayfair", "IS South",
+    "Brentwood", "IS South",
+    "Saltspring", "IS South",
+    "West Shore", "IS South",
+    "Douglas & Broughton", "IS South",
+    "Jubilee", "IS South",
+    "Pender Island", "IS South",
+    "Tuscany Village", "IS South",
+    "Woodgrove", "IS North",
+    "Cowichan Commons", "IS North",
+    "Duncan Centre", "IS North",
+    "Mill Bay", "IS North",
+    "Lake Cowichan", "IS North",
+    "Cedar", "IS North",
+    "Chemainus", "IS North",
+    "Ladysmith", "IS North",
+    "?"
+)
+
+
+FNS 90 :=
+SUM ( 'Merged'[Total_FNS] ) / SUM ( Merged[Total_Members] )
+
+FNS 90 Target :=
+2.5
+
+YOY :=
+CALCULATE ( [FNS 90], Merged[Month] = "May 2017" )
+    - CALCULATE ( [FNS 90], Merged[Month] = "May 2016" )
+
+Investment Quadrant% :=
+CALCULATE (
+    SUM ( Merged[Total_Members] ),
+    FILTER ( Merged, Merged[InvestmentQuadrantYN] = "Yes" )
+)
+    / SUM ( Merged[Total_Members] )
+
+Borrow Quadrant% :=
+CALCULATE (
+    SUM ( Merged[Total_Members] ),
+    FILTER ( Merged, Merged[BorrowQuadrantYN] = "Yes" )
+)
+    / SUM ( Merged[Total_Members] )
+
+Last Updated :=
+MAX ( Monthly[Updated_Month] )
+
+Banking Quadrant% :=
+CALCULATE (
+    SUM ( Merged[Total_Members] ),
+    FILTER ( Merged, Merged[BankingQuadrantYN] = "Yes" )
+)
+    / SUM ( Merged[Total_Members] )
+
+Monthly FNS 90 :=
+SUM ( 'Monthly'[Total_FNS] ) / SUM ( Monthly[Total_Members] )
+

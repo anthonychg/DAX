@@ -1,4 +1,526 @@
-﻿//Something much more interesting is to extract a new table that you build using a DAX Query – 
+﻿//--------------------------------------------
+//FILTER
+//--------------------------------------------
+
+EVALUATE
+SUMMARIZECOLUMNS(
+		Expenses[ExpenseCategory], 
+		FILTER(Expenses, Expenses[ExpenseCode]="UTB") , 
+		"Amt", SUM(Expenses[AmountCAD]), 
+		"MinExpenseDate", MIN(Expenses[ExpenseDate]),
+		"MaxExpenseDate", MAX(Expenses[ExpenseDate])		
+		)
+--
+
+DEFINE
+	MEASURE Expenses[MyAmount] =	
+			CALCULATE(
+				SUM(Expenses[AmountCAD]), -- must use aggregation because AmountCAD is calculated column
+				FILTER(Expenses,Expenses[ExpenseCode] = "UTB")
+				)
+EVALUATE
+	{ Expenses[MyAmount] }
+--
+DEFINE
+	MEASURE Expenses[MyAmount] =	
+			CALCULATE(
+				SUM(Expenses[AmountCAD]),
+				FILTER(Expenses,Expenses[ExpenseCode] = "UTB")
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+		Expenses[ExpenseCode],
+		"UTB Amount", Expenses[MyAmount]	
+	)
+
+--
+DEFINE
+	MEASURE Expenses[MyAmount] =	
+			CALCULATE(
+				SUM(Expenses[AmountCAD]),
+				Expenses,Expenses[ExpenseCode] = "UTB"
+				)
+EVALUATE -- this will only generate 1 row belonging to UTB
+	SUMMARIZECOLUMNS(
+		Expenses[ExpenseCode],
+		"UTB Amount", [MyAmount]	
+			)
+--
+
+
+-- this will not work because CALCULATE by itself needs table expression
+EVALUATE
+	CALCULATE(
+				[MsrAmount],
+				Expenses[ExpenseCode] = "UTB"
+			)
+
+
+-- this will return all rows of ExpenseCode with amount from UTB
+DEFINE
+	MEASURE Expenses[UTBAmount] =
+		CALCULATE(
+					[MsrAmount],
+					Expenses[ExpenseCode] = "UTB"
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmount]
+				)
+				
+
+-- use KEEPFILTERS to show other ExpenseCode as blanks except for UTB
+DEFINE
+	MEASURE Expenses[UTBAmount2021] =
+		CALCULATE(
+					[MsrAmount],
+					KEEPFILTERS(Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmount2021]
+				)
+
+-- use KEEPFILTERS to show other ExpenseCode as blanks except for UTB
+DEFINE
+	MEASURE Expenses[UTBAmount2021] =
+		CALCULATE(
+					[MsrAmount],
+					KEEPFILTERS(Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmount2021]
+				)
+				
+
+-- If attempting to limit on 2021 by using additional table, this will NOT work
+DEFINE
+	MEASURE Expenses[UTBAmount2021] =
+		CALCULATE(
+					[MsrAmount],
+					Expenses[ExpenseCode] = "UTB" && Calendar[CalendarYear] = 2021
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmount2021]
+				)
+
+-- If attempting to limit on 2021 by using same table then this will work
+-- this will show same amount belonging to UTB 2021 for all ExpenseCode
+DEFINE
+	MEASURE Expenses[UTBAmount2021] =
+		CALCULATE(
+					[MsrAmount],
+					Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmount2021]
+				)
+
+
+
+-- Alternatively, using FILTER, this will show all ExpenseCode = 0 but UTB
+DEFINE
+	MEASURE Expenses[UTBAmountFilter2021] =
+		CALCULATE(
+					[MsrAmount],
+					FILTER(
+							Expenses,
+							Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021
+							)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmountFilter2021]
+				)
+
+
+
+
+-- Alternatively, using FILTER, 
+-- this will show all ExpenseCode with same values from UTB 2021
+DEFINE
+	MEASURE Expenses[UTBAmountFilter2021] =
+		CALCULATE(
+					[MsrAmount],
+					FILTER(
+							ALL(Expenses),
+							Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021
+						)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmountFilter2021]
+				)
+
+-- this will be a better practise
+DEFINE
+	MEASURE Expenses[UTBAmountFilter2021] =
+		CALCULATE(
+					[MsrAmount],
+					FILTER(
+							ALL(Expenses[ExpenseCode], Expenses[ExpenseDate]),
+							Expenses[ExpenseCode] = "UTB" && YEAR(Expenses[ExpenseDate]) = 2021
+						)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmountFilter2021]
+				)
+
+-- using FILTER for multiple tables
+-- Alternatively, using FILTER, this will show all ExpenseCode = 0 but UTB
+DEFINE
+	MEASURE Expenses[UTBAmountFilter2021] =
+		CALCULATE(
+					[MsrAmount],
+					FILTER(
+							Expenses,
+							Expenses[ExpenseCode] = "UTB"
+							),
+					FILTER(
+							'Calendar',
+							Calendar[CalendarYear] = 2021
+										
+						)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmountFilter2021]
+				)
+
+-- using FILTER for multiple tables
+-- Alternatively, using FILTER, this will show all ExpenseCode = 0 but UTB
+DEFINE
+	MEASURE Expenses[UTBAmountFilter2021] =
+		CALCULATE(
+					[MsrAmount],
+					FILTER(
+							ALL(Expenses),
+							Expenses[ExpenseCode] = "UTB"
+							),
+					FILTER(
+							'Calendar',
+							Calendar[CalendarYear] = 2021
+										
+						)
+				)
+EVALUATE
+	SUMMARIZECOLUMNS(
+				Expenses[ExpenseCode],
+				"MyUTB", [UTBAmountFilter2021]
+				)
+-- see using CROSSJOINS and KEEPFILTER
+
+
+EVALUATE
+DEFINE
+	CALCULATE
+		(
+			[MsrAmount],
+			Expenses[ExpenseCode] = "FBV"
+		)
+
+//--------------------------------------------
+//CALCULATETABLE
+//ALL, ALLEXCEPT, ALLNOBLANKROW
+//--------------------------------------------
+
+EVALUATE
+CALCULATETABLE
+	(
+		Individual
+	)
+--
+EVALUATE
+CALCULATETABLE
+	(
+		Individual,
+		Individual[IndividualId] =1
+	)
+---------------------------------------------------
+EVALUATE
+CALCULATETABLE
+	(
+		Account
+	)
+--
+EVALUATE
+CALCULATETABLE
+	(
+		ALL(Account)
+	)
+
+	
+-----------------------------------------------------
+EVALUATE
+CALCULATETABLE
+	(
+		Account,
+		Account[AccountTypeCode] = "CHCK"
+	)
+
+EVALUATE
+CALCULATETABLE
+	(
+		Account,
+		FILTER(
+				Account,
+				Account[AccountTypeCode] = "CHCK"
+				)
+	)
+
+------------------------------------------------------
+EVALUATE
+CALCULATETABLE
+	(
+		Account,
+		ALLEXCEPT(Account, Account[AccountTypeCode])
+	)
+
+EVALUATE
+CALCULATETABLE
+	(
+		Account,
+		Account[AccountTypeCode] = "CHCK",
+		ALLEXCEPT(Account, Account[AccountTypeCode])
+	)
+
+
+EVALUATE
+CALCULATETABLE
+	(
+		ALLEXCEPT(Account, Account[AccountTypeCode])
+	)
+
+
+//-----------------------------------------------
+// TOPN
+// TOPN retrieves the top N items from a table after sorting
+// them by the result of the third argument.
+// Multiple sorting criteria can be provided in further parameters.
+//-----------------------------------------------
+EVALUATE
+	TOPN(
+		3,
+		Expenses,
+		Expenses[AmountCAD],
+		//Expenses[AmountCAD],
+		DESC
+	)
+--
+EVALUATE
+	TOPN(
+		3,
+		CALCULATETABLE
+			(				
+				Expenses			
+			),
+		Expenses[AmountCAD],		
+		DESC
+	)
+--
+EVALUATE
+	TOPN(
+		3,
+		CALCULATETABLE
+			(				
+				Expenses
+			),
+		Expenses[AmountCAD],
+		DESC
+	)
+ORDER BY [AmountCAD] DESC
+--
+
+
+EVALUATE
+	TOPN(
+		20,
+		CALCULATETABLE
+			(				
+				ALLEXCEPT(	Expenses, 
+							Expenses[Currency1], 
+							Expenses[Amount1], 
+							Expenses[Currency2], 
+							Expenses[Amount2], 
+							Expenses[PaymentSource], 
+							Expenses[ExpenseNote], 
+							Expenses[ForeignCurrency],
+							Expenses[CADExchangeRate]
+							)
+			),
+		Expenses[AmountCAD],
+		DESC
+	)
+ORDER BY [AmountCAD] DESC
+
+
+
+//-----------------------------------------------
+// SELECT COLUMNS
+//-----------------------------------------------
+
+EVALUATE
+	SELECTCOLUMNS(
+					Account,
+					"MyAccountId",
+					Account[AccountId]
+					)
+
+
+EVALUATE
+	SELECTCOLUMNS(
+				TOPN(10, Expenses),
+				"Expense Cost", Expenses[AmountCAD]
+				)
+
+
+//--------------------------------------------------
+// ADDCOLUMNS
+//--------------------------------------------------
+EVALUATE
+ADDCOLUMNS (
+	Account,
+	"AccountId2", Account[AccountId]	
+)
+				
+
+----------------------------------------------
+//VALUE
+----------------------------------------------
+EVALUATE
+{
+(VALUE("1 PM"))
+}
+
+
+//--------------------------------------------
+//EXCEPT
+//--------------------------------------------
+EVALUATE
+VAR Days = VALUES(Calendar[EnglishDayNameOfWeek])
+VAR WeekendDays = {"Saturday", "Sunday"}
+VAR WorkingDays = EXCEPT(Days, WeekendDays)
+RETURN 
+	WorkingDays
+-------------------------------
+
+EVALUATE
+	ExpenseClassification
+
+-------------------------------
+EVALUATE
+VAR  MyExpenses = VALUES(Expenses[ExpenseCode])
+VAR  ExpCode = VALUES(LkpExpense[ExpenseCode])
+VAR  NotExistExpenseCode = EXCEPT(MyExpenses, ExpCode)
+RETURN
+	NotExistExpenseCode
+-------------------------------
+EVALUATE
+VAR MyExpenses = VALUES(Expenses)
+RETURN MyExpenses
+
+-------------------------------
+//COUNTROWS
+//COUNT
+//COUNTX
+//COUNTBLANK
+//COUNTAX
+//COUNTA
+//DISTINCTCOUNT
+//DISTINCTCOUNTNONBLANK
+-------------------------------
+EVALUATE
+{
+(COUNTROWS(Expenses))
+}
+
+EVALUATE
+{
+(COUNT(Expenses[ExpenseCode]))
+}
+
+EVALUATE
+{
+(COUNTX(Expenses, EXpenses[ExpenseCode]))
+}
+
+EVALUATE
+{
+(DISTINCTCOUNT(Expenses[ExpenseCode]))
+}
+
+EVALUATE
+{
+(DISTINCTCOUNTNOBLANK(Expenses[ExpenseCode]))
+}
+
+
+----------------------
+MEASURE _Measures[Total Food Cost] = 
+	SUM(_Measures[MsrAmount],
+			FILTER(
+						Expenses,
+						Expenses[ExpenseCode]= "FBV"
+					)	
+		)
+-----------------------		
+
+DEFINE 
+	MEASURE _Measures[Total Food Count] = 
+	COUNTROWS(
+				FILTER(
+						Expenses,
+						Expenses[ExpenseCode]= "FBV"
+					)
+			)
+	MEASURE _Measures[Total ALL Cost] =		
+		SUMX(Expenses, Expenses[AmountCAD])
+		
+	MEASURE _Measures[Total Food Cost] =
+	 	CALCULATE
+	 		(
+				SUM(Expenses[AmountCAD]),
+				FILTER(Expenses, Expenses[ExpenseCode] = "FBV")
+			)
+EVALUATE			
+	{[Total ALL Cost]}
+
+
+
+
+
+---------------------------------------------------------------------------------------------------
+DEFINE
+    VAR MinimumAmount = 2000000
+    VAR MaximumAmount = 8000000
+EVALUATE
+FILTER (
+    ADDCOLUMNS (
+        SUMMARIZE ( Sales, 'Product'[Category] ),
+        "CategoryAmount", [Sales Amount]
+    ),
+    AND (
+        [CategoryAmount] >= MinimumAmount,
+        [CategoryAmount] <= MaximumAmount
+    )
+)
+ORDER BY [CategoryAmount]
+
+
+//Something much more interesting is to extract a new table that you build using a DAX Query – 
 //a table that doesn’t actually exist in your data model but can be fabricated via a query and then materialised into a spreadsheet or CSV.  
 //There are a number of regular DAX functions that return Tables including FILTER, VALUES, CALCULATETABLE, DATEADD to name a few.
 
@@ -8,6 +530,20 @@ EVALUATE
 //--------------------------------------
 EVALUATE
 	VALUES(ExpenseClassification[ExpenseCategory])
+	
+EVALUATE
+	CALCULATETABLE
+		(
+			VALUES(ExpenseClassification[ExpenseCategory])
+		)
+--
+EVALUATE
+	CALCULATETABLE
+		(
+			VALUES(ExpenseClassification[ExpenseCategory]),
+			NOT ISBLANK(ExpenseClassification[ExpenseCategory])
+		)
+--
 	
 //--------------------------------------
 EVALUATE
@@ -63,3 +599,219 @@ EVALUATE
 //In short, the storage engine is the fast, multi-threaded, cacheable engine.  The formula engine is very powerful, but is single threaded and not cacheable.  
 //Where ever possible, you want your DAX formulas to use the storage engine in preference over the formula engine. 
 
+//----------------------------------------------------------
+--------- ########## ------------
+//----------------------------------------------------------
+
+EVALUATE --> Return a table/Requires a table expression.
+Measures --> a scalar value, hence, must use {} to be put into a table.
+
+EVALUATE
+{
+	[Sales Amount], [Margin], [Margin %] --> The column must be a measure, not existing numeric column, otherwise must use aggregation function.
+} --> This will result in 3 rows
+
+
+EVALUATE
+{
+	([Sales Amount], [Margin], [Margin %])
+} --> This will result in 1 row
+
+
+EVALUATE
+{
+	([Sales Amount], [Margin], [Margin %]),
+	([Sales Amount] *2 , [Margin], [Margin %])
+} --> This will result in 2 rows with same number of columns
+
+EVALUATE
+ROW (
+	"Sales", [Sales Amount],
+	"Margin", [Margin]
+) -- add column names using ROW() function
+
+---------------------------------
+EVALUATE
+	Query1
+	
+------------------
+EVALUATE
+	SUMMARIZECOLUMNS(Query1[Region], Query1[MemberBranch])
+
+EVALUATE
+	SUMMARIZECOLUMNS(
+		'Date'[Calendar Year],
+		"Amount", [Sales Amount]
+	)
+------------------------------------
+
+//Date Table
+Date =
+ADDCOLUMNS (
+	CALENDARAUTO(),
+	"Year", YEAR ([Date]),
+	"Month", FORMAT([Date], "mmmm"),
+	"Month Number", MONTH([Date]),
+	"Quarter", FORMAT( [Date], "\QQ")
+)
+
+
+------------------
+//1 Date Table
+EVALUATE
+VAR Days = CALENDAR(DATE(2016,1,1), DATE(2018,12,31))
+RETURN ADDCOLUMNS (
+Days,
+"Year", YEAR([Date]),
+"Month Number", MONTH([Date]),
+"Month", FORMAT([Date], "mmmm"),
+"Year Month Number", YEAR([Date]) * 12 + MONTH([Date]) - 1,
+"Year Month", FORMAT([Date],"mmm yy")
+)
+
+//2 better to compute only once and call it again multiple times
+
+EVALUATE
+ADDCOLUMNS(
+	ADDCOLUMNS(
+		CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+		"Year", YEAR([Date]),
+		"Month Number", MONTH([Date]),
+		"Month", FORMAT([Date], "mmmm"),
+		"Year Month", FORMAT([Date],"mmm yy")
+		),
+	"Year Month Number", [Year] * 12 + [Month Number] - 1
+)
+
+//3 to add the name of the table for [Date]
+EVALUATE
+ADDCOLUMNS(
+	ADDCOLUMNS(
+			SELECTCOLUMNS(
+					CALENDAR(DATE(2016,1,1), DATE(2018,12,31)),
+					"Calendar[Date]", [Date]
+					),
+					"Year", YEAR(Calendar[Date]),
+					"Month Number", MONTH(Calendar[Date]),
+		"Month", FORMAT(Calendar[Date], "mmmm"),
+		"Year Month", FORMAT(Calendar[Date],"mmm yy")
+		),
+	"Year Month Number", [Year] * 12 + [Month Number] - 1
+)
+
+//4 use variables, the code is more verbose, longer.
+EVALUATE
+VAR	BaseCalendar =
+		CALENDAR(DATE(2016,1,1), DATE(2018,12,31))
+VAR	RenamedCalendar = 
+		SELECTCOLUMNS (BaseCalendar, "Calendar[Date]", [Date])
+VAR	Calendar_1 = 
+		SELECTCOLUMNS (
+			RenamedCalendar,
+			"Date", 'Calendar'[Date],
+			"Year", YEAR(Calendar[Date]),
+			"Month Number", MONTH(Calendar[Date]),
+			"Month", FORMAT(Calendar[Date], "mmmm"),
+			"Year Month", FORMAT(Calendar[Date], "mmm yy")
+		)
+VAR	Calendar_2 =
+		ADDCOLUMNS (Calendar_1, "Year Month Number", [Year] * 12 + [Month Number] -1)
+RETURN	
+	Calendar_2
+
+//5 GENERATE function
+EVALUATE
+VAR BaseCalendar = 
+	CALENDAR( DATE(2016,1,1), DATE(2018,12,31) )
+RETURN
+	GENERATE(
+		BaseCalendar,
+		VAR	BaseDate = [Date]
+		VAR	YearDate = YEAR(BaseDate)
+		VAR	MonthNumber = MONTH(BaseDate)
+		VAR	MonthName = FORMAT(BaseDate, "mmmm")
+		VAR	YearMonthName = FORMAT(BaseDate, "mmm yy")
+		VAR	YearMonthNumber = YearDate * 12 + MonthNumber - 1
+		RETURN ROW (
+			"Day", BaseDate,
+			"Year", YearDate,
+			"Month Number", MonthNumber,
+			"Month", MonthName,
+			"Year Month Number", YearMonthNumber,
+			"Year Month", YearMonthName
+			)
+		)
+
+// GENERATE function, here we only use variables for the sub-expression that need to be used multiple times
+// the code is a bit shorter, better.
+// readability of code will be much improved.
+// maintainability will have a great benefit.
+// writing DAX the right way, format the code and write the code as readable as it could.
+EVALUATE
+VAR BaseCalendar = 
+	CALENDAR( DATE(2016,1,1), DATE(2018,12,31) )
+RETURN
+	GENERATE(
+		BaseCalendar,
+		VAR	BaseDate = [Date],
+		VAR	YearDate = YEAR(BaseDate)
+		VAR	MonthNumber = MONTH(BaseDate)		
+		VAR	YearMonthNumber = YearDate * 12 + MonthNumber - 1
+		RETURN ROW (
+			"Day", BaseDate,
+			"Year", YearDate,
+			"Month Number", MonthNumber,
+			"Month", FORMAT(BaseDate, "mmmm"),
+			"Year Month Number", YearMonthNumber,
+			"Year Month", FORMAT(BaseDate, "mmm yy")
+			)
+		)
+
+------------------------------------
+// START QUERY BUILDER
+DEFINE
+MEASURE Customer[Margin] = SUMX(Sales, Sales[Quantity] * (Sales[Net Price] - Sales[Unit])
+EVALUATE
+	SUMMARIZECOLUMNS(
+		'Date'[Calendar Year],
+		'Product'[Brand],
+		Customer[Name],
+		KEEPFILTERS(FILTER(ALL('Product'[Brand], SEARCH("Contoso", 'Product'[Brand], 1,0)=1)),
+		"Sales Amount", [Sales Amount],
+		"Margin", [Margin]
+		)
+/* END QUERY BUILDER */ 
+
+-----------------------------------
+//IF ( ISBLANK ( SUM ( Expenses[AmountCAD] ) ), 0, SUM ( Expenses[AmountCAD] ) )
+
+EVALUATE
+SUMMARIZE(Account, Account[AccountId], Account[AccountDescription]) -- 64,65,76
+
+
+EVALUATE
+{
+CALCULATE (
+	SUM(Expenses[AmountCAD]), 
+	FILTER(Calendar,'Calendar'[IsThisPCBillingCycle]="Yes"),
+	FILTER(Institution, Institution[InstitutionName]= "PC Financial")
+	)
+}
+
+EVALUATE
+{
+CALCULATE (
+	SUM(Expenses[AmountCAD]), 
+	FILTER(Calendar,'Calendar'[IsPreviousPCBillingCycle]="Yes"),
+	FILTER(Institution, Institution[InstitutionName]= "PC Financial")
+	)
+}
+
+
+--------------------------------------------------------------------------------
+-- MIN, MINA, MINX
+---------------------------------------------------------------------------------
+DEFINE
+	MEASURE Expenses[MIN Amount1] = MIN(Expenses[AmountCAD])
+	MEASURE Expenses[MIN Amount2] = MINX(Expenses, Expenses[AmountCAD])
+	MEASURE Expenses

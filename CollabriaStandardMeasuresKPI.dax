@@ -1,0 +1,86 @@
+﻿
+//Calculated Columns
+
+LATESTDATE =
+IF (
+    v_CreditCardCCCO[SnapshotDate] = MAX ( v_CreditCardCCCO[SnapshotDate] ),
+    1,
+    0
+)
+
+ValueAddYN =
+SWITCH (
+    v_CreditCardCCCO[ProductDesc],
+    "Travel Rewards Gold", "Value Add",
+    "World", "Value Add",
+    "Centra Gold", "Value Add",
+    "No Fee Cash Back Business", "Value Add",
+    "Non Value Add"
+)
+
+Product =
+SWITCH (
+    [ProductCode],
+    "2622-7000", "Cash Back",
+    "2599-8000", "Travel Rewards Gold",
+    "2591-6000", "World",
+    "2622-8000", "Student",
+    "2586-6000", "No Fee Business",
+    "2622-6000", "Classic",
+    "x"
+)
+--
+
+
+
+
+
+
+//Calculated Measures
+
+LATESTDATE_HV =
+IF ( 'HV Leads'[SnapshotDate] = MAX ( 'HV Leads'[SnapshotDate] ), 1, 0 )
+
+
+ValueAddYN_HV =
+SWITCH (
+    'HV Leads'[ProductDesc],
+    "Travel Rewards Gold", "Value Add",
+    "World", "Value Add",
+    "Centra Gold", "Value Add",
+    "No Fee Cash Back Business", "Value Add",
+    "Non Value Add"
+)
+
+
+
+---
+Activation%_HV :=
+CALCULATE (
+    DISTINCTCOUNT ( 'HV Leads'[MasterAccountNumber] ),
+    FILTER ( 'HV Leads', 'HV Leads'[ActivatedYN] = "Yes" )
+)
+    / DISTINCTCOUNT ( 'HV Leads'[MasterAccountNumber] )
+
+HV_Activation% :=
+CALCULATE (
+    DISTINCTCOUNT ( 'HV Leads'[MasterAccountNumber] ),
+    FILTER ( 'HV Leads', 'HV Leads'[ActivatedYN] = "Yes" )
+)
+    / DISTINCTCOUNT ( 'HV Leads'[MasterAccountNumber] )
+
+
+Activation% :=
+CALCULATE (
+    DISTINCTCOUNT ( v_CreditCardCCCO[MasterAccountNumber] ),
+    FILTER ( v_CreditCardCCCO, v_CreditCardCCCO[ActivatedYN] = "Yes" )
+)
+    / DISTINCTCOUNT ( v_CreditCardCCCO[MasterAccountNumber] )
+
+
+Cust_Activation% :=
+CALCULATE (
+    COUNT ( v_CreditCardCCCO[CustomerHash] ),
+    FILTER ( v_CreditCardCCCO, v_CreditCardCCCO[ActivatedYN] = "Yes" )
+)
+    / COUNT ( v_CreditCardCCCO[CustomerHash] )
