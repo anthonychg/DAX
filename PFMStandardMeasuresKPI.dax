@@ -10,10 +10,11 @@ FORMAT (
     "mmm dd, yyyy hh:mm:ss AM/PM"
 )
 //--------------------------------------------------------------------------------------
-Amount :=
+MsrAmount :=
 IF ( ISBLANK ( SUM ( Expenses[AmountCAD] ) ), 0, SUM ( Expenses[AmountCAD] ) )
 
-
+MsrAverage :=
+IF ( ISBLANK ( SUM ( Expenses[AmountCAD] ) ), 0, AVERAGE ( Expenses[AmountCAD] ) )
 //--------------------------------------------------------------------------------------
 -- Month
 //--------------------------------------------------------------------------------------
